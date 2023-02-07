@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=3D Slicer
+Type=Application
+Terminal=false
+Exec=Slicer
+Icon=org.slicer.Slicer.png
+Categories=Viewer;MedicalSoftware;Graphics;Engineering;
+MimeType=application/dicom;
