@@ -1,0 +1,260 @@
+diff --git a/SuperBuild/External_CTK.cmake b/SuperBuild/External_CTK.cmake
+index 3c12924ef5..6f31cbd2ca 100644
+--- a/SuperBuild/External_CTK.cmake
++++ b/SuperBuild/External_CTK.cmake
+@@ -67,7 +67,7 @@ if(NOT DEFINED CTK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/commontk/CTK.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/CTK"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_CTKAppLauncherLib.cmake b/SuperBuild/External_CTKAppLauncherLib.cmake
+index 22d96e15a0..e478f442db 100644
+--- a/SuperBuild/External_CTKAppLauncherLib.cmake
++++ b/SuperBuild/External_CTKAppLauncherLib.cmake
+@@ -20,7 +20,7 @@ if(NOT DEFINED CTKAppLauncherLib_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/commontk/AppLauncher.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/AppLauncher"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_DCMTK.cmake b/SuperBuild/External_DCMTK.cmake
+index 1e068c6c22..8b262ec625 100644
+--- a/SuperBuild/External_DCMTK.cmake
++++ b/SuperBuild/External_DCMTK.cmake
+@@ -35,7 +35,7 @@ if(NOT DEFINED DCMTK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/commontk/DCMTK.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/DCMTK"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_ITK.cmake b/SuperBuild/External_ITK.cmake
+index ec4c09bf5d..636ad5dfa5 100644
+--- a/SuperBuild/External_ITK.cmake
++++ b/SuperBuild/External_ITK.cmake
+@@ -30,7 +30,7 @@ if(NOT DEFINED ITK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/Slicer/ITK"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/ITK"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_JsonCpp.cmake b/SuperBuild/External_JsonCpp.cmake
+index 40f7f86247..69e012c692 100644
+--- a/SuperBuild/External_JsonCpp.cmake
++++ b/SuperBuild/External_JsonCpp.cmake
+@@ -19,7 +19,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/Slicer/jsoncpp.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/jsoncpp"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_LZMA.cmake b/SuperBuild/External_LZMA.cmake
+index 8e3434ff74..6284015726 100644
+--- a/SuperBuild/External_LZMA.cmake
++++ b/SuperBuild/External_LZMA.cmake
+@@ -28,7 +28,7 @@ if((NOT DEFINED ${proj}_INCLUDE_DIR
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/xz-mirror/xz.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/xz"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_LibArchive.cmake b/SuperBuild/External_LibArchive.cmake
+index 7e49956b68..08689a92dc 100644
+--- a/SuperBuild/External_LibArchive.cmake
++++ b/SuperBuild/External_LibArchive.cmake
+@@ -27,7 +27,7 @@ if((NOT DEFINED LibArchive_INCLUDE_DIR
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/libarchive/libarchive.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/libarchive"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_LibFFI.cmake b/SuperBuild/External_LibFFI.cmake
+index 88f25f59cb..a643224663 100644
+--- a/SuperBuild/External_LibFFI.cmake
++++ b/SuperBuild/External_LibFFI.cmake
+@@ -32,7 +32,7 @@ if((NOT DEFINED LibFFI_INCLUDE_DIR
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/python-cmake-buildsystem/libffi.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/libffi"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_ParameterSerializer.cmake b/SuperBuild/External_ParameterSerializer.cmake
+index 11d22e0194..b01f09944a 100644
+--- a/SuperBuild/External_ParameterSerializer.cmake
++++ b/SuperBuild/External_ParameterSerializer.cmake
+@@ -19,7 +19,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/Slicer/ParameterSerializer.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/ParameterSerializer"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_RapidJSON.cmake b/SuperBuild/External_RapidJSON.cmake
+index 38fefe5ef5..b8ff7b141d 100644
+--- a/SuperBuild/External_RapidJSON.cmake
++++ b/SuperBuild/External_RapidJSON.cmake
+@@ -21,7 +21,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/miloyip/rapidjson.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/rapidjson"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_SimpleITK.cmake b/SuperBuild/External_SimpleITK.cmake
+index deb6e38bd8..81e7a3a5cc 100644
+--- a/SuperBuild/External_SimpleITK.cmake
++++ b/SuperBuild/External_SimpleITK.cmake
+@@ -134,7 +134,7 @@ ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" \"-m\" \"pi
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/Slicer/SimpleITK.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/SimpleITK"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_SlicerExecutionModel.cmake b/SuperBuild/External_SlicerExecutionModel.cmake
+index bb80aa5bea..7b033acebb 100644
+--- a/SuperBuild/External_SlicerExecutionModel.cmake
++++ b/SuperBuild/External_SlicerExecutionModel.cmake
+@@ -79,7 +79,7 @@ if(NOT DEFINED SlicerExecutionModel_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/Slicer/SlicerExecutionModel.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/SlicerExecutionModel"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_VTK.cmake b/SuperBuild/External_VTK.cmake
+index 87601b246d..5199401af0 100644
+--- a/SuperBuild/External_VTK.cmake
++++ b/SuperBuild/External_VTK.cmake
+@@ -133,7 +133,7 @@ if((NOT DEFINED VTK_DIR OR NOT DEFINED VTK_SOURCE_DIR) AND NOT Slicer_USE_SYSTEM
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/slicer/VTK.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/VTK"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_bzip2.cmake b/SuperBuild/External_bzip2.cmake
+index 94e7431dc2..3ab2b57619 100644
+--- a/SuperBuild/External_bzip2.cmake
++++ b/SuperBuild/External_bzip2.cmake
+@@ -28,7 +28,7 @@ if((NOT DEFINED BZIP2_INCLUDE_DIR
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/commontk/bzip2.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/bzip2"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_curl.cmake b/SuperBuild/External_curl.cmake
+index 7159efc8da..67fd10b6e5 100644
+--- a/SuperBuild/External_curl.cmake
++++ b/SuperBuild/External_curl.cmake
+@@ -52,7 +52,7 @@ if((NOT DEFINED CURL_INCLUDE_DIR
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/Slicer/curl.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/curl"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_python.cmake b/SuperBuild/External_python.cmake
+index 2216b9570a..498f4cff8d 100644
+--- a/SuperBuild/External_python.cmake
++++ b/SuperBuild/External_python.cmake
+@@ -117,7 +117,7 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/python-cmake-buildsystem/python-cmake-buildsystem.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/python-cmake-buildsystem"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_qRestAPI.cmake b/SuperBuild/External_qRestAPI.cmake
+index 47b9d922ef..38a1e11758 100644
+--- a/SuperBuild/External_qRestAPI.cmake
++++ b/SuperBuild/External_qRestAPI.cmake
+@@ -27,7 +27,7 @@ if(NOT DEFINED qRestAPI_DIR)
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/commontk/qRestAPI.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/qRestAPI"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_sqlite.cmake b/SuperBuild/External_sqlite.cmake
+index 4b54bf5b63..4bdb224eb9 100644
+--- a/SuperBuild/External_sqlite.cmake
++++ b/SuperBuild/External_sqlite.cmake
+@@ -22,7 +22,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/azadkuh/sqlite-amalgamation.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/sqlite-amalgamation"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_teem.cmake b/SuperBuild/External_teem.cmake
+index 616f65e7a4..609e64c80f 100644
+--- a/SuperBuild/External_teem.cmake
++++ b/SuperBuild/External_teem.cmake
+@@ -40,7 +40,7 @@ if(NOT DEFINED Teem_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/Slicer/teem"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/teem"
+     QUIET
+     )
+ 
+diff --git a/SuperBuild/External_zlib.cmake b/SuperBuild/External_zlib.cmake
+index 5257ac65f2..0b7c928a9f 100644
+--- a/SuperBuild/External_zlib.cmake
++++ b/SuperBuild/External_zlib.cmake
+@@ -27,7 +27,7 @@ if(NOT DEFINED ZLIB_ROOT AND NOT Slicer_USE_SYSTEM_${proj})
+ 
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+-    "${EP_GIT_PROTOCOL}://github.com/commontk/zlib.git"
++    "$file://${CMAKE_SOURCE_DIR}/dependencies/zlib"
+     QUIET
+     )
+ 

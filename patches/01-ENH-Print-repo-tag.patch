@@ -1,0 +1,12 @@
+diff --git a/CMake/ExternalProjectDependency.cmake b/CMake/ExternalProjectDependency.cmake
+index 55d3b8afe5..caa2f77c7c 100644
+--- a/CMake/ExternalProjectDependency.cmake
++++ b/CMake/ExternalProjectDependency.cmake
+@@ -1057,6 +1057,7 @@ macro(ExternalProject_SetIfNotDefined var defaultvalue)
+     endif()
+     set(${var} "${defaultvalue}")
+   endif()
++message(STATUS "${var}=${${var}}")
+ endmacro()
+ 
+ #.rst:
