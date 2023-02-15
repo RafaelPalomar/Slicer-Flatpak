@@ -88,7 +88,6 @@ generate-flatpak-manifest: check-flatpak-dependencies
 			repo_tag=`tail -1 $$dep`; \
 			echo "$${repo_url}" > $${dep/%.deps/.url}; \
 			echo "$${repo_tag}" > $${dep/%.deps/.tag}; \
-			#echo "$${repo_url}/archive/$${repo_tag}.tar.gz" > $${dep/%.deps/.url}; \
 		done
 	$(Q)cd $(DEPS_DIR) && \
 		for i in *.url; do \
@@ -105,7 +104,7 @@ generate-flatpak-manifest: check-flatpak-dependencies
 		else \
 			printf '%s\n' "$$line" ; \
 		fi ; \
-	done > org.slicer.Slicer.yaml
+	done > org.slicer.Slicer/org.slicer.Slicer.yaml
 
 
 	$(Q)echo "Generating flatpak manifest..."
