@@ -17,7 +17,7 @@ else
 	Q=@
 endif
 
-all: info check-system-dependencies check-flatpak-dependencies generate-flatpak-manifest build-flatpak
+all: info check-system-dependencies check-flatpak-dependencies analyze-slicer-dependencies generate-flatpak-manifest build-flatpak
 
 info:
 	@echo "################################################################################"
@@ -65,49 +65,69 @@ check-flatpak-dependencies: info
 
 # Variables
 PATCH_DIR := $(abspath patches)
-DEPS_DIR := $(abspath slicer-dependencies)
 TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
+SLICER_SOURCE_DIR := $(TMP_DIR)/Slicer
 
-# Generate Flatpak Manifest
-generate-flatpak-manifest: check-flatpak-dependencies
+# Pull 3D Slicer on the provided version and analyze its
+# build dependencies. While most dependencies are handled
+# as git dependencies in Slicer, CTKAppLauncher is handled
+# as an arhive file.
+analyze-slicer-dependencies: check-flatpak-dependencies
 	$(Q)echo "Analyzing Slicer dependencies..."
 	$(Q)mkdir -p $(TMP_DIR)
-	$(Q)mkdir -p $(DEPS_DIR)
+# Clone, patch and filter GIT Slicer dependencies
 	$(Q)cd $(TMP_DIR) && \
 		git clone --depth=1 $(SLICER_GIT_REPOSITORY) -b $(SLICER_GIT_TAG) && \
-		cd Slicer && \
+		cd $(SLICER_SOURCE_DIR) && \
 		git apply $(PATCH_DIR)/01-ENH-Print-repo-tag.patch && \
-		mkdir -p Release && \
-		cd Release && \
-		cmake -S .. -B . -DCMAKE_BUILD_TYPE:STRING=Release 2&> cmake.out && \
-		grep "GIT_REPOSITORY" cmake.out | awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_GIT_REPOSITORY", "", $$1); print $$1 > "$(DEPS_DIR)/"$$1".deps"; print $$2 > "$(DEPS_DIR)/"$$1".deps"}' && \
-		grep "GIT_TAG" cmake.out | awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_GIT_TAG", "", $$1); print $$2 >> "$(DEPS_DIR)/"$$1".deps"}'
-	$(Q)cd $(DEPS_DIR) && \
+		mkdir -p $(SLICER_SOURCE_DIR)/Release && \
+		cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release 2&> Release/cmake.out && \
+		grep "GIT_REPOSITORY" Release/cmake.out | awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_GIT_REPOSITORY", "", $$1); print $$1 > "$(TMP_DIR)/"$$1".deps"; print $$2 > "$(TMP_DIR)/"$$1".deps"}' && \
+		grep "GIT_TAG" Release/cmake.out | awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_GIT_TAG", "", $$1); print $$2 >> "$(TMP_DIR)/"$$1".deps"}' && \
+		grep "AppLauncher" Release/cmake.out
+# Write dependency files
+	$(Q)cd $(TMP_DIR) && \
 		for dep in *.deps; do \
 			repo_url=`head -2 $$dep | tail -1 | sed 's/\.git//g'`; \
 			repo_tag=`tail -1 $$dep`; \
-			echo "$${repo_url}" > $${dep/%.deps/.url}; \
-			echo "$${repo_tag}" > $${dep/%.deps/.tag}; \
+			echo "$${repo_url}" > $(TMP_DIR)/$${dep/%.deps/.url}; \
+			echo "$${repo_tag}" > $(TMP_DIR)/$${dep/%.deps/.tag}; \
 		done
-	$(Q)cd $(DEPS_DIR) && \
+	$(Q)cd $(TMP_DIR) && \
 		for i in *.url; do \
 			curl -LJ $$(cat $$i) > $(TMP_DIR)/$${i%.url}.tar.gz; \
 			sha256sum $(TMP_DIR)/$${i%.url}.tar.gz | cut -d' ' -f1 > $${i%.url}.sha256; \
 		done
+	#For reference: https://superuser.com/questions/790560/variables-in-gnu-make-recipes-is-that-possible
+	# $(Q)$(eval CTKAPPLAUNCHER_VERSION=`cat $(SLICER_SOURCE_DIR)/SuperBuild/External_CTKAPPLAUNCHER.cmake | grep -E 'set.launcher_version' | sed 's/[^0-9\.]//g'`)
+	# $(Q)$(eval CTKAPPLAUNCHER_FILENAME=`echo CTKAppLauncher-$(CTKAPPLAUNCHER_VERSION)-linux-i386.tar.gz`)
+	# $(Q)$(eval CTKAPPLAUNCHER_URL=`echo https://github.com/commontk/AppLauncher/releases/download/v$(CTKAPPLAUNCHER_VERSION)/$(CTKAPPLAUNCHER_FILENAME)`)
+	# $(Q)curl -LJ $(CTKAPPLAUNCHER_URL) > $(TMP_DIR)/$(CTKAPPLAUNCHER_FILENAME)
+	# $(Q)$(eval CTKAPPLAUNCHER_SHA256=`sha256sum $(TMP_DIR)/$(CTKAPPLAUNCHER_FILENAME) | cut -d' ' -f1'`)
+
+# Generate the Flatpak manifest using a template and the corresponding
+# dependencies
+generate-flatpak-manifest: analyze-slicer-dependencies
+	$(Q)echo "Generating flatpak manifest..."
+
+# Slicer dependencies
 	$(Q)cat templates/org.slicer.Slicer.yaml | while IFS= read -r line; do \
 		if echo "$$line" | grep -q "<SLICER_DEPENDENCIES>"; then \
-			for dep in $(DEPS_DIR)/*.url; do \
+			for dep in $(TMP_DIR)/*.url; do \
 				echo "      - type: git" ; \
 				echo "        url: $$(cat $$dep)" ; \
 				echo "        tag: $$(cat $${dep%%.url}.tag)" ; \
+				echo "        dest: dependencies/$$(basename $${dep%.*})" ; \
+			done ; \
+		elif echo "$$line" | grep -q "<CMAKE_DEPENDENCY_FLAGS>"; then \
+			for dep in $(TMP_DIR)/*.url; do \
+				echo "        -DSlicer_$$(basename $${dep%.*})_GIT_REPOSITORY:STRING="'file://$${FLATPAK_BUILDER_BUILDDIR}/dependencies/'"$$(basename $${dep%.*})" ; \
 			done ; \
 		else \
 			printf '%s\n' "$$line" ; \
 		fi ; \
 	done > org.slicer.Slicer/org.slicer.Slicer.yaml
 
-
-	$(Q)echo "Generating flatpak manifest..."
 
 # Build Flatpak
 build-flatpak: info
@@ -117,7 +137,7 @@ build-flatpak: info
 # Clean
 clean:
 	$(Q)echo "Cleaning generated files..."
-	$(Q)rm -rf $(DEPS_DIR)
+	$(Q)rm -rf $(TMP_DIR)
 	$(Q)rm -rf $(RANDOM_DIR)
 
 .PHONY: check-system-dependencies check-flatpak-dependencies generate-flatpak-manifest build-flatpak

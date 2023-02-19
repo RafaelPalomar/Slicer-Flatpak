@@ -20,11 +20,17 @@ modules:
   - name: Slicer
     buildsystem: simple
     build-commands:
-      - ls
+      - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release
+      <CMAKE_DEPENDENCY_FLAGS> # Template tag for inserting CMake dependency flags
+      - cmake --build Release
     sources:
       - type: git
         url: https://github.com/Slicer/Slicer.git
         tag: main
       - type: patch
         path: 01-ENH-Disable-https-check.patch
-      <SLICER_DEPENDENCIES>
+      - type: patch
+        path: 02-ENH-Disable-git-submodules-in-RapidJSON.cmake
+      <SLICER_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (GIT)
+      # - type: archive
+      #   url: https://github.com/commontk/AppLauncher/archive/refs/tags/v0.1.31.zip
