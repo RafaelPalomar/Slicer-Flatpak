@@ -20,7 +20,7 @@ modules:
   - name: Slicer
     buildsystem: simple
     build-commands:
-      - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release
+      - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON
       <CMAKE_GIT_DEPENDENCY_FLAGS> # Template tag for inserting CMake git-based dependency flags
       <CMAKE_ARCHIVE_DEPENDENCY_FLAGS> # Template tag for inserting CMake archive-based dependency flags
       - cmake --build Release
