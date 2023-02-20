@@ -80,23 +80,29 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 		git clone --depth=1 $(SLICER_GIT_REPOSITORY) -b $(SLICER_GIT_TAG) && \
 		cd $(SLICER_SOURCE_DIR) && \
 		git apply $(PATCH_DIR)/01-ENH-Print-repo-tag.patch && \
+		git apply $(PATCH_DIR)/02-ENH-Make-OpenSSL-sources-visible.patch && \
 		mkdir -p $(SLICER_SOURCE_DIR)/Release && \
 		cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release 2&> Release/cmake.out && \
-		grep "GIT_REPOSITORY" Release/cmake.out | awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_GIT_REPOSITORY", "", $$1); print $$1 > "$(TMP_DIR)/"$$1".deps"; print $$2 > "$(TMP_DIR)/"$$1".deps"}' && \
-		grep "GIT_TAG" Release/cmake.out | awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_GIT_TAG", "", $$1); print $$2 >> "$(TMP_DIR)/"$$1".deps"}' && \
-		grep "AppLauncher" Release/cmake.out
+		grep "GIT_REPOSITORY" Release/cmake.out | \
+			awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_GIT_REPOSITORY", "", $$1); print $$1 > "$(TMP_DIR)/"$$1".git.dep"; print $$2 > "$(TMP_DIR)/"$$1".git.dep"}' && \
+		grep "GIT_TAG" Release/cmake.out | \
+			awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_GIT_TAG", "", $$1); print $$2 >> "$(TMP_DIR)/"$$1".git.dep"}' && \
+		grep "ARCHIVE_URL" Release/cmake.out | \
+			awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_ARCHIVE_URL", "", $$1); print $$1 > "$(TMP_DIR)/"$$1".archive.dep"; print $$2 > "$(TMP_DIR)/"$$1".archive.dep"}'
 # Write dependency files
 	$(Q)cd $(TMP_DIR) && \
-		for dep in *.deps; do \
+		for dep in *.git.dep; do \
 			repo_url=`head -2 $$dep | tail -1 | sed 's/\.git//g'`; \
 			repo_tag=`tail -1 $$dep`; \
-			echo "$${repo_url}" > $(TMP_DIR)/$${dep/%.deps/.url}; \
-			echo "$${repo_tag}" > $(TMP_DIR)/$${dep/%.deps/.tag}; \
+			echo "$${repo_url}" > $(TMP_DIR)/$${dep/%.git.dep/.git.url}; \
+			echo "$${repo_tag}" > $(TMP_DIR)/$${dep/%.git.dep/.git.tag}; \
 		done
 	$(Q)cd $(TMP_DIR) && \
-		for i in *.url; do \
-			curl -LJ $$(cat $$i) > $(TMP_DIR)/$${i%.url}.tar.gz; \
-			sha256sum $(TMP_DIR)/$${i%.url}.tar.gz | cut -d' ' -f1 > $${i%.url}.sha256; \
+		for dep in *.archive.dep; do \
+			archive_url=`head -2 $$dep | tail -1`; \
+			echo "$${archive_url}" > $(TMP_DIR)/$${dep/%.archive.dep/.archive.url}; \
+			echo "$${archive_url##*/}" > $(TMP_DIR)/$${dep/%.archive.dep/.archive.filename}; \
+			curl -LJ $${archive_url} | sha256sum | cut -d' ' -f1 > $(TMP_DIR)/$${dep%.archive.dep}.sha256; \
 		done
 	#For reference: https://superuser.com/questions/790560/variables-in-gnu-make-recipes-is-that-possible
 	# $(Q)$(eval CTKAPPLAUNCHER_VERSION=`cat $(SLICER_SOURCE_DIR)/SuperBuild/External_CTKAPPLAUNCHER.cmake | grep -E 'set.launcher_version' | sed 's/[^0-9\.]//g'`)
@@ -112,16 +118,28 @@ generate-flatpak-manifest: analyze-slicer-dependencies
 
 # Slicer dependencies
 	$(Q)cat templates/org.slicer.Slicer.yaml | while IFS= read -r line; do \
-		if echo "$$line" | grep -q "<SLICER_DEPENDENCIES>"; then \
-			for dep in $(TMP_DIR)/*.url; do \
+		if echo "$$line" | grep -q "<SLICER_GIT_DEPENDENCIES>"; then \
+			for dep in $(TMP_DIR)/*.git.url; do \
 				echo "      - type: git" ; \
 				echo "        url: $$(cat $$dep)" ; \
 				echo "        tag: $$(cat $${dep%%.url}.tag)" ; \
 				echo "        dest: dependencies/$$(basename $${dep%.*})" ; \
 			done ; \
-		elif echo "$$line" | grep -q "<CMAKE_DEPENDENCY_FLAGS>"; then \
-			for dep in $(TMP_DIR)/*.url; do \
-				echo "        -DSlicer_$$(basename $${dep%.*})_GIT_REPOSITORY:STRING="'file://$${FLATPAK_BUILDER_BUILDDIR}/dependencies/'"$$(basename $${dep%.*})" ; \
+		elif echo "$$line" | grep -q "<CMAKE_GIT_DEPENDENCY_FLAGS>"; then \
+			for dep in $(TMP_DIR)/*.git.url; do \
+				echo "        -DSlicer_$$(basename $${dep%.git.*})_GIT_REPOSITORY:STRING="'file://$${FLATPAK_BUILDER_BUILDDIR}/dependencies/'"$$(basename $${dep%.*})" ; \
+			done ; \
+		elif echo "$$line" | grep -q "<SLICER_ARCHIVE_DEPENDENCIES>"; then \
+			for dep in $(TMP_DIR)/*.archive.url; do \
+				echo "      - type: archive" ; \
+				echo "        url: $$(cat $$dep)" ; \
+				echo "        sha256: $$(cat $${dep%%.archive.url}.sha256)" ; \
+				echo "        dest: dependencies/$$(cat $${dep%.archive.url}.archive.filename)" ; \
+				echo "        strip-components: 2" ; \
+			done ; \
+		elif echo "$$line" | grep -q "<CMAKE_ARCHIVE_DEPENDENCY_FLAGS>"; then \
+			for dep in $(TMP_DIR)/*.archive.url; do \
+				echo "        -DSlicer_$$(basename $${dep%.archive.*})_ARCHIVE_URL:STRING="'$${FLATPAK_BUILDER_BUILDDIR}/dependencies/'"$$(cat $${dep%.archive.url}.archive.filename)" ; \
 			done ; \
 		else \
 			printf '%s\n' "$$line" ; \

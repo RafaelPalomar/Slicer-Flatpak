@@ -21,7 +21,8 @@ modules:
     buildsystem: simple
     build-commands:
       - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release
-      <CMAKE_DEPENDENCY_FLAGS> # Template tag for inserting CMake dependency flags
+      <CMAKE_GIT_DEPENDENCY_FLAGS> # Template tag for inserting CMake git-based dependency flags
+      <CMAKE_ARCHIVE_DEPENDENCY_FLAGS> # Template tag for inserting CMake archive-based dependency flags
       - cmake --build Release
     sources:
       - type: git
@@ -31,6 +32,7 @@ modules:
         path: 01-ENH-Disable-https-check.patch
       - type: patch
         path: 02-ENH-Disable-git-submodules-in-RapidJSON.cmake
-      <SLICER_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (GIT)
-      # - type: archive
-      #   url: https://github.com/commontk/AppLauncher/archive/refs/tags/v0.1.31.zip
+      - type: patch
+        path: 03-ENH-Make-OpenSSL-sources-visible.patch
+      <SLICER_GIT_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (git)
+      <SLICER_ARCHIVE_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (Archive files)
