@@ -1,0 +1,3 @@
+[submodule "org.slicer.Slicer"]
+	path = org.slicer.Slicer
+	url = git@github.com:RafaelPalomar/org.slicer.Slicer
