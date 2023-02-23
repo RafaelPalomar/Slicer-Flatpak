@@ -37,11 +37,6 @@ info:
 # Check System Dependencies
 check-system-dependencies: info
 	$(Q)echo "Checking system dependencies..."
-	$(Q)if command -v helm > /dev/null; then \
-		echo "Helm is installed"; \
-	else \
-		echo "ERROR: Helm is not installed"; exit 1; \
-	fi
 	$(Q)if command -v flatpak > /dev/null; then \
 		echo "Flatpak is installed"; \
 	else \
