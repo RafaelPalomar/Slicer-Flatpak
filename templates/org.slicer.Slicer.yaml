@@ -36,5 +36,7 @@ modules:
         path: 03-ENH-Make-OpenSSL-sources-visible.patch
       - type: patch
         path: 04-ENH-Make-CTKAppLauncher-sources-available.patch
+      - type: patch
+        path: 05-ENH-Make-Python-sources-available.patch
       <SLICER_GIT_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (git)
       <SLICER_ARCHIVE_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (Archive files)

@@ -79,9 +79,7 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 	$(Q)cd $(TMP_DIR) && \
 		git clone --depth=1 $(SLICER_GIT_REPOSITORY) -b $(SLICER_GIT_TAG) && \
 		cd $(SLICER_SOURCE_DIR) && \
-		git apply $(PATCH_DIR)/01-ENH-Print-repo-tag.patch && \
-		git apply $(PATCH_DIR)/02-ENH-Make-OpenSSL-sources-visible.patch && \
-		git apply $(PATCH_DIR)/03-ENH-Make-CTKAppLauncher-sources-available.patch && \
+		for patch in $$(ls $(PATCH_DIR)); do git apply $(PATCH_DIR)/$${patch}; done && \
 		mkdir -p $(SLICER_SOURCE_DIR)/Release && \
 		cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release 2&> Release/cmake.out && \
 		grep "GIT_REPOSITORY" Release/cmake.out | \
