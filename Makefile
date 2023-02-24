@@ -17,6 +17,18 @@ else
 	Q=@
 endif
 
+# Strip level function
+# This is an utility function to selectively determine the directory strip level
+# for different dependencies. This is needed due to the fact that the 1st level
+# directory name does not match the expected name by the build system. An ideal
+# scenario would be that the flatpak-builder allows to skip the archive
+# extraction (whic is not the case), then the build system would take care of it.
+# TDLR: A needed hack until flatpak-builder has functionality to skip archive
+# extraction (which is expected by the Slicer superbuild)
+define get_strip_level
+if echo "$(1)" | grep -qw "OpenSSL"; then echo 2; else echo 1; fi
+endef
+
 all: info check-system-dependencies check-flatpak-dependencies analyze-slicer-dependencies generate-flatpak-manifest build-flatpak
 
 info:
@@ -125,11 +137,12 @@ generate-flatpak-manifest: analyze-slicer-dependencies
 			done ; \
 		elif echo "$$line" | grep -q "<SLICER_ARCHIVE_DEPENDENCIES>"; then \
 			for dep in $(TMP_DIR)/*.archive.url; do \
+				strip_level=`$(call get_strip_level, $${dep%.archive.url})` ; \
 				echo "      - type: archive" ; \
 				echo "        url: $$(cat $$dep)" ; \
 				echo "        sha256: $$(cat $${dep%%.archive.url}.sha256)" ; \
 				echo "        dest: dependencies/$$(cat $${dep%.archive.url}.archive.filename)" ; \
-				echo "        strip-components: 2" ; \
+				echo "        strip-components: $${strip_level}"  ; \
 			done ; \
 		elif echo "$$line" | grep -q "<CMAKE_ARCHIVE_DEPENDENCY_FLAGS>"; then \
 			for dep in $(TMP_DIR)/*.archive.url; do \
