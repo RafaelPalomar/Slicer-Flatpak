@@ -18,6 +18,8 @@ distributions.
 
 Before using Slicer-Flatpak, make sure you have the following software installed on your system:
 
+- [Pythoh3](https://python.org/)
+- Python3 requirements_parser 
 - [Flatpak](https://flatpak.org/)
 - [Flatpak Builder](https://docs.flatpak.org/en/latest/flatpak-builder.html)
 
@@ -38,6 +40,11 @@ You can then install these dependencies by issuing the following command:
 ``` sh
 sudo flatpak install org.kde.Sdk/x86_64/5.15 org.kde.Platform/x86_64/5.15-22.08 io.qt.qtwebengine.BaseApp/x86_64/5.15-22.08
 
+```
+Finally, the `requirements_parser` and `PyYAML` python3 modules can be installed as follows:
+
+``` sh
+pip3 install --user requirements_parser PyYAML
 ```
 
 ### Organization of the repository
