@@ -17,15 +17,7 @@ else
 	Q=@
 endif
 
-# Variables
-PATCH_DIR := $(abspath patches)
-TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
-SLICER_SOURCE_DIR := $(TMP_DIR)/Slicer
-FLATPAK_PIP_GENERATOR := $(TMP_DIR)/bin/flatpak-pip-generator
-FLATPAK_PIP_GENERATOR_URL := "https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/master/pip/flatpak-pip-generator"
-FLATPAK_OUTPUT_DIR := org.slicer.Slicer
-
-all: info check-system-dependencies check-flatpak-dependencies download-flatpak-pip-generator analyze-slicer-dependencies get-python-dependencies generate-flatpak-manifest build-flatpak
+all: info check-system-dependencies check-flatpak-dependencies analyze-slicer-dependencies analyze-slicer-python-dependencies generate-flatpak-manifest build-flatpak
 
 info:
 	@echo "################################################################################"
@@ -45,11 +37,6 @@ info:
 # Check System Dependencies
 check-system-dependencies: info
 	$(Q)echo "Checking system dependencies..."
-	$(Q)if command -v python3> /dev/null; then \
-		echo "Python3 is installed"; \
-	else \
-		echo "ERROR: Python3 is not installed"; exit 1; \
-	fi
 	$(Q)if command -v flatpak > /dev/null; then \
 		echo "Flatpak is installed"; \
 	else \
@@ -70,10 +57,11 @@ check-flatpak-dependencies: info
 	else \
 		echo "io.qt.qtwebengine.BaseApp/x86_64/$(QTWEBENGINE_VERSION) is installed"; \
 	fi
-# Download Flatpak pip generator
-download-flatpak-pip-generator: info
-	$(Q)mkdir $$(dirname ${FLATPAK_PIP_GENERATOR}) -p
-	$(Q)curl -Lo $(FLATPAK_PIP_GENERATOR) $(FLATPAK_PIP_GENERATOR_URL)
+
+# Variables
+PATCH_DIR := $(abspath patches)
+TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
+SLICER_SOURCE_DIR := $(TMP_DIR)/Slicer
 
 # Pull 3D Slicer on the provided version and analyze its
 # build dependencies. While most dependencies are handled
@@ -110,22 +98,22 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 			echo "$${archive_url##*/}" > $(TMP_DIR)/$${dep/%.archive.dep/.archive.filename}; \
 			curl -LJ $${archive_url} | sha256sum | cut -d' ' -f1 > $(TMP_DIR)/$${dep%.archive.dep}.sha256; \
 		done
+	#For reference: https://superuser.com/questions/790560/variables-in-gnu-make-recipes-is-that-possible
+	# $(Q)$(eval CTKAPPLAUNCHER_VERSION=`cat $(SLICER_SOURCE_DIR)/SuperBuild/External_CTKAPPLAUNCHER.cmake | grep -E 'set.launcher_version' | sed 's/[^0-9\.]//g'`)
+	# $(Q)$(eval CTKAPPLAUNCHER_FILENAME=`echo CTKAppLauncher-$(CTKAPPLAUNCHER_VERSION)-linux-i386.tar.gz`)
+	# $(Q)$(eval CTKAPPLAUNCHER_URL=`echo https://github.com/commontk/AppLauncher/releases/download/v$(CTKAPPLAUNCHER_VERSION)/$(CTKAPPLAUNCHER_FILENAME)`)
+	# $(Q)curl -LJ $(CTKAPPLAUNCHER_URL) > $(TMP_DIR)/$(CTKAPPLAUNCHER_FILENAME)
+	# $(Q)$(eval CTKAPPLAUNCHER_SHA256=`sha256sum $(TMP_DIR)/$(CTKAPPLAUNCHER_FILENAME) | cut -d' ' -f1'`)
 
-#For reference: https://superuser.com/questions/790560/variables-in-gnu-make-recipes-is-that-possible
-# $(Q)$(eval CTKAPPLAUNCHER_VERSION=`cat $(SLICER_SOURCE_DIR)/SuperBuild/External_CTKAPPLAUNCHER.cmake | grep -E 'set.launcher_version' | sed 's/[^0-9\.]//g'`)
-# $(Q)$(eval CTKAPPLAUNCHER_FILENAME=`echo CTKAppLauncher-$(CTKAPPLAUNCHER_VERSION)-linux-i386.tar.gz`)
-# $(Q)$(eval CTKAPPLAUNCHER_URL=`echo https://github.com/commontk/AppLauncher/releases/download/v$(CTKAPPLAUNCHER_VERSION)/$(CTKAPPLAUNCHER_FILENAME)`)
-# $(Q)curl -LJ $(CTKAPPLAUNCHER_URL) > $(TMP_DIR)/$(CTKAPPLAUNCHER_FILENAME)
-# $(Q)$(eval CTKAPPLAUNCHER_SHA256=`sha256sum $(TMP_DIR)/$(CTKAPPLAUNCHER_FILENAME) | cut -d' ' -f1'`)
-#
+analyze-slicer-python-dependencies: analyze-slicer-dependencies
+	$(Q)echo "Analyzing python dependencies..."
+	for pythondep in $(SLICER_SOURCE_DIR)/Release/python-setuptools-requirements.txt; do \
+		python3 scripts/slicer-python-deps-generator.py -r $${pythondep} -o $(TMP_DIR)/$$(basename $${pythondep%.txt}) --yaml; \
+	done;
 
-get-python-dependencies: analyze-slicer-dependencies
-	python3 $(FLATPAK_PIP_GENERATOR) \
-		--requirements-file=$(SLICER_SOURCE_DIR)/Release/python-setuptools-requirements.txt \
-		--output $(FLATPAK_OUTPUT_DIR)/python-setuptools-requirements
-
-# Generate the Flatpak manifest using a template and the corresponding dependencies
-generate-flatpak-manifest: get-python-dependencies
+# Generate the Flatpak manifest using a template and the corresponding
+# dependencies
+generate-flatpak-manifest: analyze-slicer-python-dependencies
 	$(Q)echo "Generating flatpak manifest..."
 
 # Slicer dependencies
@@ -143,7 +131,6 @@ generate-flatpak-manifest: get-python-dependencies
 			done ; \
 		elif echo "$$line" | grep -q "<SLICER_ARCHIVE_DEPENDENCIES>"; then \
 			for dep in $(TMP_DIR)/*.archive.url; do \
-				strip_level=`$(call get_strip_level, $${dep%.archive.url})` ; \
 				echo "      - type: file" ; \
 				echo "        url: $$(cat $$dep)" ; \
 				echo "        sha256: $$(cat $${dep%%.archive.url}.sha256)" ; \
@@ -157,6 +144,10 @@ generate-flatpak-manifest: get-python-dependencies
 			printf '%s\n' "$$line" ; \
 		fi ; \
 	done > org.slicer.Slicer/org.slicer.Slicer.yaml
+
+	for pythondep in $(SLICER_SOURCE_DIR)/Release/python-setuptools-requirements.txt; do \
+		sed 's/^/      /' $(TMP_DIR)/$$(basename $${pythondep%.txt}).yaml >> org.slicer.Slicer/org.slicer.Slicer.yaml; \
+	done;
 
 
 # Build Flatpak
