@@ -34,6 +34,8 @@ parser.add_argument('--cleanup', choices=['scripts', 'all'],
                     help='Select what to clean up after build')
 parser.add_argument('--requirements-file', '-r',
                     help='Specify requirements.txt file')
+parser.add_argument('--destination-file', '-d',
+                    help='Specify dependency name')
 parser.add_argument('--build-only', action='store_const',
                     dest='cleanup', const='all',
                     help='Clean up all files after build')
@@ -329,7 +331,9 @@ with tempfile.TemporaryDirectory(prefix=tempdir_prefix) as tempdir:
             source = dict([
                 ('type', 'file'),
                 ('url', url),
-                ('sha256', sha256)])
+                ('sha256', sha256),
+                ('dest', opts.destination_file)
+            ])
             if opts.checker_data:
                 source['x-checker-data'] = {
                     'type': 'pypi',
