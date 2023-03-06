@@ -35,7 +35,7 @@ parser.add_argument('--cleanup', choices=['scripts', 'all'],
 parser.add_argument('--requirements-file', '-r',
                     help='Specify requirements.txt file')
 parser.add_argument('--destination-file', '-d',
-                    help='Specify dependency name')
+                    help='Specify dependency name (expected folder/filename format)')
 parser.add_argument('--build-only', action='store_const',
                     dest='cleanup', const='all',
                     help='Clean up all files after build')
@@ -332,7 +332,8 @@ with tempfile.TemporaryDirectory(prefix=tempdir_prefix) as tempdir:
                 ('type', 'file'),
                 ('url', url),
                 ('sha256', sha256),
-                ('dest', opts.destination_file)
+                ('dest', 'dependencies'),
+                ('dest-filename', url.split('/')[-1])
             ])
             if opts.checker_data:
                 source['x-checker-data'] = {

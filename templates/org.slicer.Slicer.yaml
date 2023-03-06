@@ -23,6 +23,7 @@ modules:
       - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON
       <CMAKE_GIT_DEPENDENCY_FLAGS> # Template tag for inserting CMake git-based dependency flags
       <CMAKE_ARCHIVE_DEPENDENCY_FLAGS> # Template tag for inserting CMake archive-based dependency flags
+      <CMAKE_PYTHON_DEPENDENCY_FLAGS> # Template tag for inserting Python archive-based dependency flags
       - cmake --build Release
     sources:
       - type: git
@@ -38,5 +39,7 @@ modules:
         path: 04-ENH-Make-CTKAppLauncher-sources-available.patch
       - type: patch
         path: 05-ENH-Make-Python-sources-available.patch
+      - type: patch
+        path: 06-ENH-Enable-install-python-setuptools-from-wheel.patch
       <SLICER_GIT_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (git)
       <SLICER_ARCHIVE_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (Archive files)
