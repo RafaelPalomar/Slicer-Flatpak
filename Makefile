@@ -1,3 +1,5 @@
+SHELL=/bin/sh
+
 # Slicer Git Repository and Tag
 SLICER_GIT_REPOSITORY ?= https://github.com/Slicer/Slicer
 SLICER_GIT_TAG ?= main
@@ -17,6 +19,11 @@ else
 	Q=@
 endif
 
+# Internal
+PATCH_DIR := $(abspath patches)
+TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
+SLICER_SOURCE_DIR := $(TMP_DIR)/Slicer
+
 all: info check-system-dependencies check-flatpak-dependencies analyze-slicer-dependencies analyze-slicer-python-dependencies generate-flatpak-manifest build-flatpak
 
 info:
@@ -26,13 +33,22 @@ info:
 	@echo "#                                                                              #"
 	@echo "################################################################################"
 	@echo ""
-	@echo "Variables:"
+	@echo "Project Configuration:"
+	@echo "~~~~~~~~~~~~~~~~~~~~~~"
 	@echo "SLICER_GIT_REPOSITORY: $(SLICER_GIT_REPOSITORY)"
 	@echo "SLICER_GIT_TAG: $(SLICER_GIT_TAG)"
 	@echo "PLATFORM_VERSION: $(PLATFORM_VERSION)"
 	@echo "QTWEBENGINE_VERSION: $(QTWEBENGINE_VERSION)"
 	@echo "SDK_VERSION: $(SDK_VERSION)"
 	@echo ""
+ifeq ($(DEBUG),true)
+	@echo "Debug Variables:"
+	@echo "~~~~~~~~~~~~~~~~~~~~~~"
+	@echo "PATCH_DIR: $(PATCH_DIR)"
+	@echo "TMP_DIR: $(TMP_DIR)"
+	@echo "SLICER_SOUCE_DIR: $(SLICER_SOURCE_DIR)"
+	@echo ""
+endif
 
 # Check System Dependencies
 check-system-dependencies: info
@@ -47,6 +63,11 @@ check-system-dependencies: info
 	else \
 		echo "ERROR: Flatpak builder is not installed"; exit 1; \
 	fi
+	$(Q)if command -v awk > /dev/null; then \
+		echo "awk is installed"; \
+	else \
+		echo "ERROR: awk is not installed"; exit 1; \
+	fi
 
 # Check Flatpak Dependencies
 check-flatpak-dependencies: info
@@ -57,11 +78,6 @@ check-flatpak-dependencies: info
 	else \
 		echo "io.qt.qtwebengine.BaseApp/x86_64/$(QTWEBENGINE_VERSION) is installed"; \
 	fi
-
-# Variables
-PATCH_DIR := $(abspath patches)
-TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
-SLICER_SOURCE_DIR := $(TMP_DIR)/Slicer
 
 # Pull 3D Slicer on the provided version and analyze its
 # build dependencies. While most dependencies are handled
@@ -164,6 +180,3 @@ clean:
 	$(Q)echo "Cleaning generated files..."
 	$(Q)rm -rf $(TMP_DIR)
 	$(Q)rm -rf $(RANDOM_DIR)
-
-.PHONY: check-system-dependencies check-flatpak-dependencies generate-flatpak-manifest build-flatpak
-
