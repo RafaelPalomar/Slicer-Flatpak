@@ -16,7 +16,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
-import ruamel.yaml
+import yaml
 
 from collections import OrderedDict
 from typing import Dict
@@ -154,6 +154,18 @@ def parse_continuation_lines(fin):
                 exit('Requirements have a wrong number of line continuation characters "\\"')
         yield line
 
+# Remove anchors from data
+def remove_anchors(node):
+    if isinstance(node, ruamel.yaml.comments.CommentedSeq):
+        node.fa.set_flow_style()
+        for item in node:
+            remove_anchors(item)
+    elif isinstance(node, dict):
+        for value in node.values():
+            remove_anchors(value)
+    elif isinstance(node, list):
+        for item in node:
+            remove_anchors(item)
 
 def fprint(string: str) -> None:
     separator = '=' * 72  # Same as `flatpak-builder`
@@ -246,7 +258,9 @@ with tempfile.TemporaryDirectory(prefix=tempdir_prefix) as tempdir:
         '--dest',
         tempdir,
         '-r',
-        requirements_file
+        requirements_file,
+        '--abi=cp39m',
+        '--only-binary=:all:'
     ]
     if use_hash:
         pip_download.append('--require-hashes')
@@ -446,25 +460,15 @@ for package in packages:
     if package.vcs:
         vcs_modules.append(module)
     else:
-        modules.append(module)
+        for i in module:
+            modules.append(i)
 
-modules = vcs_modules + modules
-if len(modules) == 1:
-    pypi_module = modules[0]
-else:
-    pypi_module = {
-        # 'name': output_package,
-        # 'buildsystem': 'simple',
-        # 'build-commands': [],
-        'modules': modules,
-    }
+class VerboseSafeDumper(yaml.SafeDumper):
+    def ignore_aliases(self, data):
+        return True
 
-print()
 with open(output_filename, 'w') as output:
-    if opts.yaml:
-        yaml = ruamel.yaml.YAML()
-        print(pypi_module)
-        yaml.dump(pypi_module, output)
+    if len(modules) != 0:
+        output.write(yaml.dump(modules,Dumper=VerboseSafeDumper))
     else:
-        output.write(json.dumps(pypi_module, indent=4))
-    print('Output saved to {}'.format(output_filename))
+        output.write('# Missing dependencies for ' + opts.requirements_file + '\n')

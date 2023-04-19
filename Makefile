@@ -123,8 +123,8 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 
 analyze-slicer-python-dependencies: analyze-slicer-dependencies
 	$(Q)echo "Analyzing python dependencies..."
-	for pythondep in $(SLICER_SOURCE_DIR)/Release/python-setuptools-requirements.txt \
-					 $(SLICER_SOURCE_DIR)/Release/python-pip-requirements.txt; do \
+	for pythondep in $(SLICER_SOURCE_DIR)/Release/python*requirements.txt ; \
+	do \
 		python3 scripts/slicer-python-deps-generator.py -r $${pythondep} -o $(TMP_DIR)/$$(basename $${pythondep%.txt}) \
 			--target-requirements $$(basename $${pythondep%-requirements.txt}) --yaml; \
 	done;
@@ -160,14 +160,15 @@ generate-flatpak-manifest: analyze-slicer-python-dependencies
 			done ; \
 		elif echo "$$line" | grep -q "<CMAKE_PYTHON_DEPENDENCY_FLAGS>"; then \
 			for dep in $(TMP_DIR)/python-*.yaml; do \
-				echo "        -DSlicer_$$(basename $${dep%*-requirements.yaml})_WHEEL_PATH:STRING="'$${FLATPAK_BUILDER_BUILDDIR}/'"$$(grep dest: $$dep | tr -d ' '| cut -d: -f 2)" ; \
+				echo "        -DSlicer_$$(basename $${dep%*-requirements.yaml})_WHEEL_PATH:STRING="'$${FLATPAK_BUILDER_BUILDDIR}/'"$$(grep dest: $$dep | head -1 | tr -d ' '| cut -d: -f 2)" ; \
 			done ; \
 		else \
 			printf '%s\n' "$$line" ; \
 		fi ; \
 	done > org.slicer.Slicer/org.slicer.Slicer.yaml
 
-	for pythondep in $(SLICER_SOURCE_DIR)/Release/python-setuptools-requirements.txt $(SLICER_SOURCE_DIR)/Release/python-pip-requirements.txt; do \
+	for pythondep in $(SLICER_SOURCE_DIR)/Release/python*requirements.txt ; \
+	do \
 		sed 's/^/      /' $(TMP_DIR)/$$(basename $${pythondep%.txt}).yaml >> org.slicer.Slicer/org.slicer.Slicer.yaml; \
 	done;
 
