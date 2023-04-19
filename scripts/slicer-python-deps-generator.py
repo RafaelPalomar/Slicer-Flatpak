@@ -34,8 +34,8 @@ parser.add_argument('--cleanup', choices=['scripts', 'all'],
                     help='Select what to clean up after build')
 parser.add_argument('--requirements-file', '-r',
                     help='Specify requirements.txt file')
-parser.add_argument('--destination-file', '-d',
-                    help='Specify dependency name (expected folder/filename format)')
+parser.add_argument('--target-requirements', '-t',
+                    help='Name of the target package related to the requirements')
 parser.add_argument('--build-only', action='store_const',
                     dest='cleanup', const='all',
                     help='Clean up all files after build')
@@ -332,7 +332,7 @@ with tempfile.TemporaryDirectory(prefix=tempdir_prefix) as tempdir:
                 ('type', 'file'),
                 ('url', url),
                 ('sha256', sha256),
-                ('dest', 'dependencies'),
+                ('dest', 'dependencies/'+opts.target_requirements),
                 ('dest-filename', url.split('/')[-1])
             ])
             if opts.checker_data:

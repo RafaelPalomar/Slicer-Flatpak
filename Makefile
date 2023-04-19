@@ -123,9 +123,10 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 
 analyze-slicer-python-dependencies: analyze-slicer-dependencies
 	$(Q)echo "Analyzing python dependencies..."
-	for pythondep in $(SLICER_SOURCE_DIR)/Release/python-setuptools-requirements.txt $(SLICER_SOURCE_DIR)/Release/python-pip-requirements.txt; do \
+	for pythondep in $(SLICER_SOURCE_DIR)/Release/python-setuptools-requirements.txt \
+					 $(SLICER_SOURCE_DIR)/Release/python-pip-requirements.txt; do \
 		python3 scripts/slicer-python-deps-generator.py -r $${pythondep} -o $(TMP_DIR)/$$(basename $${pythondep%.txt}) \
-			--destination-file dependencies/$$(basename $${pythondep%-requirements.txt}).whl --yaml; \
+			--target-requirements $$(basename $${pythondep%-requirements.txt}) --yaml; \
 	done;
 
 # Generate the Flatpak manifest using a template and the corresponding
@@ -159,7 +160,7 @@ generate-flatpak-manifest: analyze-slicer-python-dependencies
 			done ; \
 		elif echo "$$line" | grep -q "<CMAKE_PYTHON_DEPENDENCY_FLAGS>"; then \
 			for dep in $(TMP_DIR)/python-*.yaml; do \
-				echo "        -DSlicer_$$(basename $${dep%*-requirements.yaml})_PYTHON_WHEEL:STRING="'$${FLATPAK_BUILDER_BUILDDIR}/dependencies/'"$$(grep dest-filename $$dep | tr -d ' '| cut -d: -f 2)" ; \
+				echo "        -DSlicer_$$(basename $${dep%*-requirements.yaml})_WHEEL_PATH:STRING="'$${FLATPAK_BUILDER_BUILDDIR}/'"$$(grep dest: $$dep | tr -d ' '| cut -d: -f 2)" ; \
 			done ; \
 		else \
 			printf '%s\n' "$$line" ; \
