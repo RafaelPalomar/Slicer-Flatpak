@@ -138,7 +138,28 @@ analyze-slicer-python-dependencies: analyze-slicer-dependencies
 	do \
 		$(SLICER_SOURCE_DIR)/Release/python-install/bin/PythonSlicer scripts/slicer-python-deps-generator.py -r $${pythondep} -o $(TMP_DIR)/$$(basename $${pythondep%.txt}) \
 			--target-requirements $$(basename $${pythondep%-requirements.txt}) --yaml; \
-	done;
+	done
+
+analyze-ITK-remote-modules: analyze-slicer-dependencies
+	$(Q)echo "Analyzing python dependencies..."
+	mkdir $(TMP_DIR)/ITK-Remote-Modules -p
+	cd $(TMP_DIR) && git clone $$(cat $(TMP_DIR)/ITK.git.url) ITK
+	cd $(ITK_SOURCE_DIR) && git checkout $$(cat $(TMP_DIR)/ITK.git.tag)
+	$(eval ITK_BANNED_MODULES := ITKTubeTK) # Set the list of banned modules
+	for file in $(ITK_SOURCE_DIR)/Modules/Remote/*.cmake; do \
+		if echo "$(ITK_BANNED_MODULES)" | grep -qw $$(basename $$file .cmake); then \
+			echo "Skipping module $$(basename $$file .cmake)"; \
+		else \
+			repo=$$(grep "^[\t ]*GIT_REPOSITORY" $$file | sed 's/GIT_REPOSITORY\s\{0,\}\$${git_protocol}:\/\/\([a-zA-Z0-9.\/:_-]*\)/https:\/\/\1/' | sed 's/^[ \t]*//'); \
+			tag=$$(grep "^[\t ]*GIT_TAG" $$file | sed 's/GIT_TAG\s\{0,\}//'); \
+			url_file=$$(basename $$file .cmake); \
+			url_file=ITK-Remote-$${url_file}.git.url; \
+			tag_file=$$(basename $$file .cmake); \
+			tag_file=ITK-Remote-$${tag_file}.git.tag; \
+			echo "$$repo" > $(TMP_DIR)/ITK-Remote-Modules/$$url_file; \
+			echo "$$tag" > $(TMP_DIR)/ITK-Remote-Modules/$$tag_file; \
+		fi; \
+	done
 
 # Generate the Flatpak manifest using a template and the corresponding
 # dependencies
@@ -172,6 +193,13 @@ generate-flatpak-manifest: analyze-slicer-python-dependencies
 		elif echo "$$line" | grep -q "<CMAKE_PYTHON_DEPENDENCY_FLAGS>"; then \
 			for dep in $(TMP_DIR)/python-*.yaml; do \
 				echo "        -DSlicer_$$(basename $${dep%*-requirements.yaml})_WHEEL_PATH:STRING="'$${FLATPAK_BUILDER_BUILDDIR}/'"$$(grep dest: $$dep | head -1 | tr -d ' '| cut -d: -f 2)" ; \
+			done ; \
+		elif echo "$$line" | grep -q "<ITK_REMOTE_MODULE_DEPENDENCIES>"; then \
+			for dep in $(TMP_DIR)/ITK-Remote-Modules/*.git.url; do \
+				echo "      - type: git" ; \
+				echo "        url: $$(cat $$dep)" ; \
+				echo "        tag: $$(cat $${dep%%.url}.tag)" ; \
+				echo "        dest: dependencies/ITK-Remote-Modules/$$(basename $${dep%.*})" ; \
 			done ; \
 		else \
 			printf '%s\n' "$$line" ; \

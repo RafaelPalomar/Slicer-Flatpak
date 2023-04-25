@@ -18,7 +18,7 @@ modules:
   - name: Slicer
     buildsystem: simple
     build-commands:
-      - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON
+      - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON -DITK_REMOTE_MODULES_DIR:FILEPATH=dependencies/ITK-Remote-Modules -DSlicer_CHECK_CMAKE_HTTPS_SUPPORT:BOOL=OFF
       <CMAKE_GIT_DEPENDENCY_FLAGS> # Template tag for inserting CMake git-based dependency flags
       <CMAKE_ARCHIVE_DEPENDENCY_FLAGS> # Template tag for inserting CMake archive-based dependency flags
       <CMAKE_PYTHON_DEPENDENCY_FLAGS> # Template tag for inserting Python archive-based dependency flags
@@ -28,16 +28,23 @@ modules:
         url: https://github.com/Slicer/Slicer.git
         tag: main
       - type: patch
-        path: 01-ENH-Disable-https-check.patch
+        path: 0001-ENH-Add-an-option-to-switch-CMake-HTTPS-checks.patch
       - type: patch
-        path: 02-ENH-Disable-git-submodules-in-RapidJSON.cmake
+        path: 0002-ENH-Print-external-dependencies-variables.patch
       - type: patch
-        path: 03-ENH-Make-OpenSSL-sources-visible.patch
+        path: 0003-ENH-Expose-CTKAPPLAUNCHER-sources-variables.patch
       - type: patch
-        path: 04-ENH-Make-CTKAppLauncher-sources-available.patch
+        path: 0004-ENH-Disable-pull-of-git-submodules-for-RapidJSON.patch
       - type: patch
-        path: 05-ENH-Make-Python-sources-available.patch
+        path: 0005-ENH-Expose-OpenSSL-dependencies-variables.patch
       - type: patch
-        path: 06-ENH-Enable-install-python-setuptools-from-wheel.patch
+        path: 0006-ENH-Expose-python-dependency-variables.patch
+      - type: patch
+        path: 0007-ENH-Expose-python-wheel-dependencies.patch
+      - type: patch
+        path: 0008-ENH-Supress-pull-of-git-modules-for-VTK.patch
+      - type: patch
+        path: 0009-ENH-Enable-ITK-build-with-offline-remote-modules.patch
       <SLICER_GIT_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (git)
       <SLICER_ARCHIVE_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (Archive files)
+      <ITK_REMOTE_MODULE_DEPENDENCIES> # Template tag for inserting ITK remote module dependencies
