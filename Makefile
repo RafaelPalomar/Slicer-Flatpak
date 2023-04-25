@@ -23,8 +23,17 @@ endif
 PATCH_DIR := $(abspath patches)
 TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
 SLICER_SOURCE_DIR := $(TMP_DIR)/Slicer
+ITK_SOURCE_DIR:= $(TMP_DIR)/ITK
 
-all: info check-system-dependencies check-flatpak-dependencies analyze-slicer-dependencies analyze-slicer-python-dependencies generate-flatpak-manifest build-flatpak
+all: \
+    info \
+    check-system-dependencies \
+    check-flatpak-dependencies \
+    analyze-slicer-dependencies \
+    analyze-slicer-python-dependencies \
+	analyze-ITK-remote-modules \
+    generate-flatpak-manifest \
+    build-flatpak
 
 info:
 	@echo "################################################################################"
@@ -93,6 +102,8 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 		for patch in $$(ls $(PATCH_DIR)); do git apply $(PATCH_DIR)/$${patch}; done && \
 		mkdir -p $(SLICER_SOURCE_DIR)/Release && \
 		cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release 2&> Release/cmake.out && \
+		cmake --build Release --target python-ensurepip && \
+		$(SLICER_SOURCE_DIR)/Release/python-install/bin/PythonSlicer -m pip install PyYaml requirements-parser && \
 		grep "GIT_REPOSITORY" Release/cmake.out | \
 			awk -F= '{gsub("-- Slicer_", "", $$1); gsub("_GIT_REPOSITORY", "", $$1); print $$1 > "$(TMP_DIR)/"$$1".git.dep"; print $$2 > "$(TMP_DIR)/"$$1".git.dep"}' && \
 		grep "GIT_TAG" Release/cmake.out | \
@@ -125,7 +136,7 @@ analyze-slicer-python-dependencies: analyze-slicer-dependencies
 	$(Q)echo "Analyzing python dependencies..."
 	for pythondep in $(SLICER_SOURCE_DIR)/Release/python*requirements.txt ; \
 	do \
-		python3 scripts/slicer-python-deps-generator.py -r $${pythondep} -o $(TMP_DIR)/$$(basename $${pythondep%.txt}) \
+		$(SLICER_SOURCE_DIR)/Release/python-install/bin/PythonSlicer scripts/slicer-python-deps-generator.py -r $${pythondep} -o $(TMP_DIR)/$$(basename $${pythondep%.txt}) \
 			--target-requirements $$(basename $${pythondep%-requirements.txt}) --yaml; \
 	done;
 

@@ -17,6 +17,7 @@ import sys
 import tempfile
 import urllib.request
 import yaml
+from pip._internal import main as pip_main
 
 from collections import OrderedDict
 from typing import Dict
@@ -252,26 +253,23 @@ sources = {}
 
 tempdir_prefix = 'pip-generator-{}'.format(os.path.basename(output_package))
 with tempfile.TemporaryDirectory(prefix=tempdir_prefix) as tempdir:
-    pip_download = flatpak_cmd + [
+    pip_download = [
         'download',
         '--exists-action=i',
         '--dest',
         tempdir,
         '-r',
         requirements_file,
-        '--abi=cp39m',
-        '--only-binary=:all:'
+        '--no-deps'
     ]
-    if use_hash:
-        pip_download.append('--require-hashes')
+    # if use_hash:
+    #     pip_download.append('--require-hashes')
 
     fprint('Downloading sources')
-    cmd = ' '.join(pip_download)
-    print('Running: "{}"'.format(cmd))
     try:
-        subprocess.run(pip_download, check=True)
-    except subprocess.CalledProcessError:
-        print('Failed to download')
+        pip_main(pip_download)
+    except Exception as e:
+        print('Failed to download:', str(e))
         print('Please fix the module manually in the generated file')
 
     if not opts.requirements_file:
@@ -279,6 +277,35 @@ with tempfile.TemporaryDirectory(prefix=tempdir_prefix) as tempdir:
             os.remove(requirements_file)
         except FileNotFoundError:
             pass
+
+
+    # pip_download = flatpak_cmd + [
+    #     'download',
+    #     '--exists-action=i',
+    #     '--dest',
+    #     tempdir,
+    #     '-r',
+    #     requirements_file,
+    #     '--abi=cp39m',
+    #     '--only-binary=:all:'
+    # ]
+    # if use_hash:
+    #     pip_download.append('--require-hashes')
+
+    # fprint('Downloading sources')
+    # cmd = ' '.join(pip_download)
+    # print('Running: "{}"'.format(cmd))
+    # try:
+    #     subprocess.run(pip_download, check=True)
+    # except subprocess.CalledProcessError:
+    #     print('Failed to download')
+    #     print('Please fix the module manually in the generated file')
+
+    # if not opts.requirements_file:
+    #     try:
+    #         os.remove(requirements_file)
+    #     except FileNotFoundError:
+    #         pass
 
     fprint('Downloading arch independent packages')
     for filename in os.listdir(tempdir):

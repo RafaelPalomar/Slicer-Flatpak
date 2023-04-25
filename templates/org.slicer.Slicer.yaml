@@ -2,9 +2,7 @@ app-id: org.slicer.Slicer
 runtime: org.kde.Platform
 runtime-version: '5.15'
 sdk: org.kde.Sdk
-# KDE runtime environment does not provide the QtWebEngine component
-# required for 3D Slicer
-base: io.qt.qtwebengine.BaseApp
+base: io.qt.qtwebengine.BaseApp # KDE runtime environment does not provide the QtWebEngine component required for 3D Slicer
 base-version: '5.15-22.08'
 command: Slicer
 finish-args:
