@@ -45,6 +45,8 @@ modules:
         path: 0008-ENH-Supress-pull-of-git-modules-for-VTK.patch
       - type: patch
         path: 0009-ENH-Enable-ITK-build-with-offline-remote-modules.patch
+      - type: patch
+        path: 0010-ENH-Enable-offline-remote-dependencies.patch
       <SLICER_GIT_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (git)
       <SLICER_ARCHIVE_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (Archive files)
       <ITK_REMOTE_MODULE_DEPENDENCIES> # Template tag for inserting ITK remote module dependencies
