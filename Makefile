@@ -34,6 +34,7 @@ PATCH_DIR := $(abspath patches)
 TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
 SLICER_SOURCE_DIR := $(TMP_DIR)/Slicer
 ITK_SOURCE_DIR:= $(TMP_DIR)/ITK
+CTK_SOURCE_DIR:= $(TMP_DIR)/CTK
 
 all: \
     info \
@@ -114,7 +115,7 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 	$(Q)cd $(TMP_DIR) && \
 		git clone --depth=1 $(SLICER_GIT_REPOSITORY) -b $(SLICER_GIT_TAG) && \
 		cd $(SLICER_SOURCE_DIR) && \
-		for patch in $$(ls $(PATCH_DIR)); do git apply $(PATCH_DIR)/$${patch}; done && \
+		for patch in $$(ls $(PATCH_DIR)/Slicer); do git apply $(PATCH_DIR)/Slicer/$${patch}; done && \
 		mkdir -p $(SLICER_SOURCE_DIR)/Release && \
 		cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) 2&> Release/cmake.out && \
 		cmake --build Release --target python-ensurepip && \
@@ -146,6 +147,15 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 	# $(Q)$(eval CTKAPPLAUNCHER_URL=`echo https://github.com/commontk/AppLauncher/releases/download/v$(CTKAPPLAUNCHER_VERSION)/$(CTKAPPLAUNCHER_FILENAME)`)
 	# $(Q)curl -LJ $(CTKAPPLAUNCHER_URL) > $(TMP_DIR)/$(CTKAPPLAUNCHER_FILENAME)
 	# $(Q)$(eval CTKAPPLAUNCHER_SHA256=`sha256sum $(TMP_DIR)/$(CTKAPPLAUNCHER_FILENAME) | cut -d' ' -f1'`)
+
+analyze-ctk-dependencies: analyze-slicer-dependencies
+	$(Q)cd $(TMP_DIR) && \
+	git clone $$(cat $(TMP_DIR)/CTK.git.url) CTK
+	$(Q)cd $(TMP_DIR)/CTK && \
+	git checkout $$(cat $(TMP_DIR)/CTK.git.tag) && \
+	for patch in $$(ls $(PATCH_DIR)/CTK); do git apply $(PATCH_DIR)/CTK/$${patch}; done && \
+	mkdir -p $(CTK_SOURCE_DIR)/Release && \
+	cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) 2&> Release/cmake.out
 
 analyze-slicer-python-dependencies: analyze-slicer-dependencies
 	$(Q)echo "Analyzing python dependencies..."
