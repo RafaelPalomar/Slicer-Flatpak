@@ -19,6 +19,16 @@ else
 	Q=@
 endif
 
+# If CCACHE_CXX_COMPILER is defined, use ccache
+ifdef CCACHE_CXX_COMPILER
+CCACHE_SUPPORT += -DCMAKE_CXX_COMPILER=$(CCACHE_CXX_COMPILER)
+endif
+
+# If CCACHE_C_COMPILER is defined, use ccache
+ifdef CCACHE_C_COMPILER
+CCACHE_SUPPORT += -DCMAKE_C_COMPILER=$(CCACHE_C_COMPILER)
+endif
+
 # Internal
 PATCH_DIR := $(abspath patches)
 TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
@@ -50,14 +60,19 @@ info:
 	@echo "QTWEBENGINE_VERSION: $(QTWEBENGINE_VERSION)"
 	@echo "SDK_VERSION: $(SDK_VERSION)"
 	@echo ""
+	@echo "CCACHE SUPPORT:"
+	@echo "~~~~~~~~~~~~~~~~~"
+	@echo "CCACHE_C_COMPILER: $(CCACHE_C_COMPILER)"
+	@echo "CCACHE_CXX_COMPILER: $(CCACHE_CXX_COMPILER)"
 ifeq ($(DEBUG),true)
 	@echo "Debug Variables:"
-	@echo "~~~~~~~~~~~~~~~~~~~~~~"
+	@echo "~~~~~~~~~~~~~~~~~"
 	@echo "PATCH_DIR: $(PATCH_DIR)"
 	@echo "TMP_DIR: $(TMP_DIR)"
 	@echo "SLICER_SOUCE_DIR: $(SLICER_SOURCE_DIR)"
 	@echo ""
 endif
+
 
 # Check System Dependencies
 check-system-dependencies: info
@@ -101,7 +116,7 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 		cd $(SLICER_SOURCE_DIR) && \
 		for patch in $$(ls $(PATCH_DIR)); do git apply $(PATCH_DIR)/$${patch}; done && \
 		mkdir -p $(SLICER_SOURCE_DIR)/Release && \
-		cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release 2&> Release/cmake.out && \
+		cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) 2&> Release/cmake.out && \
 		cmake --build Release --target python-ensurepip && \
 		$(SLICER_SOURCE_DIR)/Release/python-install/bin/PythonSlicer -m pip install PyYaml requirements-parser && \
 		grep "GIT_REPOSITORY" Release/cmake.out | \
