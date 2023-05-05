@@ -47,6 +47,13 @@ modules:
         path: 0009-ENH-Enable-ITK-build-with-offline-remote-modules.patch
       - type: patch
         path: 0010-ENH-Enable-offline-remote-dependencies.patch
+      - type: patch
+        path: 0011-ENH-Enable-build-with-offilne-PCRE.patch
+      - type: patch
+        path: 0012-ENH-Enable-build-with-onffline-swift.patch
+      - type: patch
+        path: Generated_CTK_SuperBuild.patch
       <SLICER_GIT_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (git)
       <SLICER_ARCHIVE_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (Archive files)
       <ITK_REMOTE_MODULE_DEPENDENCIES> # Template tag for inserting ITK remote module dependencies
+      <CTK_DEPENDENCIES> # Template tag for inserting CTK dependencies

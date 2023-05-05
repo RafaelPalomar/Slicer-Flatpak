@@ -35,6 +35,7 @@ TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | f
 SLICER_SOURCE_DIR := $(TMP_DIR)/Slicer
 ITK_SOURCE_DIR:= $(TMP_DIR)/ITK
 CTK_SOURCE_DIR:= $(TMP_DIR)/CTK
+FLATPAK_DIR := $(CURDIR)/org.slicer.Slicer
 
 all: \
     info \
@@ -43,6 +44,7 @@ all: \
     analyze-slicer-dependencies \
     analyze-slicer-python-dependencies \
 	analyze-ITK-remote-modules \
+	analyze-ctk-dependencies\
     generate-flatpak-manifest \
     build-flatpak
 
@@ -150,12 +152,34 @@ analyze-slicer-dependencies: check-flatpak-dependencies
 
 analyze-ctk-dependencies: analyze-slicer-dependencies
 	$(Q)cd $(TMP_DIR) && \
+	mkdir CTK-deps -p && \
 	git clone $$(cat $(TMP_DIR)/CTK.git.url) CTK
 	$(Q)cd $(TMP_DIR)/CTK && \
 	git checkout $$(cat $(TMP_DIR)/CTK.git.tag) && \
 	for patch in $$(ls $(PATCH_DIR)/CTK); do git apply $(PATCH_DIR)/CTK/$${patch}; done && \
 	mkdir -p $(CTK_SOURCE_DIR)/Release && \
-	cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) 2&> Release/cmake.out
+	cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) -DCTK_USE_QTTESTING:BOOL=ON 2&> Release/cmake.out && \
+	grep "GIT_REPOSITORY" Release/cmake.out | \
+		awk -F= '{gsub("-- ", "", $$1); gsub("_GIT_REPOSITORY", "", $$1); print $$1 > "$(TMP_DIR)/CTK-deps/"$$1".git.dep"; print $$2 > "$(TMP_DIR)/CTK-deps/"$$1".git.dep"}' && \
+	grep "GIT_TAG" Release/cmake.out | \
+		awk -F= '{gsub("-- ", "", $$1); gsub("_GIT_TAG", "", $$1); print $$2 >> "$(TMP_DIR)/CTK-deps/"$$1".git.dep"}' && \
+	grep "ARCHIVE_URL" Release/cmake.out | \
+		awk -F= '{gsub("-- ", "", $$1); gsub("_ARCHIVE_URL", "", $$1); print $$1 > "$(TMP_DIR)/CTK-deps/"$$1".archive.dep"; print $$2 > "$(TMP_DIR)/CTK-deps/"$$1".archive.dep"}'
+# Write dependency files
+	$(Q)cd $(TMP_DIR)/CTK-deps && \
+		for dep in *.git.dep; do \
+			repo_url=`head -2 $$dep | tail -1 | sed 's/\.git//g'`; \
+			repo_tag=`tail -1 $$dep`; \
+			echo "$${repo_url}" > $(TMP_DIR)/CTK-deps/$${dep/%.git.dep/.git.url}; \
+			echo "$${repo_tag}" > $(TMP_DIR)/CTK-deps/$${dep/%.git.dep/.git.tag}; \
+		done
+	# $(Q)cd $(TMP_DIR)/CTK-deps && \
+	# 	for dep in *.archive.dep; do \
+	# 		archive_url=`head -2 $$dep | tail -1`; \
+	# 		echo "$${archive_url}" > $(TMP_DIR)/CTK-deps/$${dep/%.archive.dep/.archive.url}; \
+	# 		echo "$${archive_url##*/}" > $(TMP_DIR)/CTK-deps/$${dep/%.archive.dep/.archive.filename}; \
+	# 		curl -LJ $${archive_url} | sha256sum | cut -d' ' -f1 > $(TMP_DIR)/CTK-deps/$${dep%.archive.dep}.sha256; \
+	# 	done
 
 analyze-slicer-python-dependencies: analyze-slicer-dependencies
 	$(Q)echo "Analyzing python dependencies..."
@@ -186,12 +210,26 @@ analyze-ITK-remote-modules: analyze-slicer-dependencies
 		fi; \
 	done
 
+generate-patch-slicer-external-ctk: analyze-ctk-dependencies
+	$(Q)echo "Generating patch for Slicer/External_CTK.cmake..."
+
+	$(Q)cat $(TMP_DIR)/Slicer/SuperBuild/External_CTK.cmake | while IFS= read -r line; do \
+		if echo "$$line" | grep -q "#<CTK_TEMPLATED_FLAGS>"; then \
+			for dep in $(TMP_DIR)/CTK-deps/*.git.url; do \
+				echo "-D$$(basename $${dep%.git.*})_GIT_REPOSITORY:STRING="'file://$${FLATPAK_BUILDER_BUILDDIR}/dependencies/'"$$(basename $${dep%.*})" ; \
+			done ; \
+		else \
+			printf '%s\n' "$$line" ; \
+		fi ; \
+	done > $(TMP_DIR)/Slicer/SuperBuild/External_CTK.cmake.tmp
+	$(Q)mv $(TMP_DIR)/Slicer/SuperBuild/External_CTK.cmake.tmp $(TMP_DIR)/Slicer/SuperBuild/External_CTK.cmake
+	$(Q)cd $(TMP_DIR)/Slicer && git diff --patch > $(FLATPAK_DIR)/Generated_CTK_SuperBuild.patch
+
 # Generate the Flatpak manifest using a template and the corresponding
 # dependencies
-generate-flatpak-manifest: analyze-slicer-python-dependencies
+generate-flatpak-manifest: analyze-slicer-python-dependencies analyze-ctk-dependencies generate-patch-slicer-external-ctk
 	$(Q)echo "Generating flatpak manifest..."
 
-# Slicer dependencies
 	$(Q)cat templates/org.slicer.Slicer.yaml | while IFS= read -r line; do \
 		if echo "$$line" | grep -q "<SLICER_GIT_DEPENDENCIES>"; then \
 			for dep in $(TMP_DIR)/*.git.url; do \
@@ -225,6 +263,13 @@ generate-flatpak-manifest: analyze-slicer-python-dependencies
 				echo "        url: $$(cat $$dep)" ; \
 				echo "        tag: $$(cat $${dep%%.url}.tag)" ; \
 				echo "        dest: dependencies/ITK-Remote-Modules/$$(basename $${dep%.*})" ; \
+			done ; \
+		elif echo "$$line" | grep -q "<CTK_DEPENDENCIES>"; then \
+			for dep in $(TMP_DIR)/CTK-deps/*.git.url; do \
+				echo "      - type: git" ; \
+				echo "        url: $$(cat $$dep)" ; \
+				echo "        tag: $$(cat $${dep%%.url}.tag)" ; \
+				echo "        dest: dependencies/CTK-dependencies/$$(basename $${dep%.*})" ; \
 			done ; \
 		else \
 			printf '%s\n' "$$line" ; \
