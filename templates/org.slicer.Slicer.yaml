@@ -18,7 +18,7 @@ modules:
   - name: Slicer
     buildsystem: simple
     build-commands:
-      - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON -DITK_REMOTE_MODULES_DIR:FILEPATH=dependencies/ITK-Remote-Modules -DSlicer_CHECK_CMAKE_HTTPS_SUPPORT:BOOL=OFF
+      - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON -DITK_REMOTE_MODULES_DIR:FILEPATH=dependencies/ITK-Remote-Modules -DSlicer_CHECK_CMAKE_HTTPS_SUPPORT:BOOL=OFF -DFLATPAK_BUILDER_BUILDDIR:FILEPATH=${FLATPAK_BUILDER_BUILDDIR}
       <CMAKE_GIT_DEPENDENCY_FLAGS> # Template tag for inserting CMake git-based dependency flags
       <CMAKE_ARCHIVE_DEPENDENCY_FLAGS> # Template tag for inserting CMake archive-based dependency flags
       <CMAKE_PYTHON_DEPENDENCY_FLAGS> # Template tag for inserting Python archive-based dependency flags

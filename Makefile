@@ -156,7 +156,7 @@ analyze-ctk-dependencies: analyze-slicer-dependencies
 	git clone $$(cat $(TMP_DIR)/CTK.git.url) CTK
 	$(Q)cd $(TMP_DIR)/CTK && \
 	git checkout $$(cat $(TMP_DIR)/CTK.git.tag) && \
-	for patch in $$(ls $(PATCH_DIR)/CTK); do git apply $(PATCH_DIR)/CTK/$${patch}; done && \
+	for patch in $$(ls $(PATCH_DIR)/CTK/*); do git apply $${patch}; done && \
 	mkdir -p $(CTK_SOURCE_DIR)/Release && \
 	cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) -DCTK_USE_QTTESTING:BOOL=ON 2&> Release/cmake.out && \
 	grep "GIT_REPOSITORY" Release/cmake.out | \
@@ -173,13 +173,6 @@ analyze-ctk-dependencies: analyze-slicer-dependencies
 			echo "$${repo_url}" > $(TMP_DIR)/CTK-deps/$${dep/%.git.dep/.git.url}; \
 			echo "$${repo_tag}" > $(TMP_DIR)/CTK-deps/$${dep/%.git.dep/.git.tag}; \
 		done
-	# $(Q)cd $(TMP_DIR)/CTK-deps && \
-	# 	for dep in *.archive.dep; do \
-	# 		archive_url=`head -2 $$dep | tail -1`; \
-	# 		echo "$${archive_url}" > $(TMP_DIR)/CTK-deps/$${dep/%.archive.dep/.archive.url}; \
-	# 		echo "$${archive_url##*/}" > $(TMP_DIR)/CTK-deps/$${dep/%.archive.dep/.archive.filename}; \
-	# 		curl -LJ $${archive_url} | sha256sum | cut -d' ' -f1 > $(TMP_DIR)/CTK-deps/$${dep%.archive.dep}.sha256; \
-	# 	done
 
 analyze-slicer-python-dependencies: analyze-slicer-dependencies
 	$(Q)echo "Analyzing python dependencies..."
@@ -216,14 +209,16 @@ generate-patch-slicer-external-ctk: analyze-ctk-dependencies
 	$(Q)cat $(TMP_DIR)/Slicer/SuperBuild/External_CTK.cmake | while IFS= read -r line; do \
 		if echo "$$line" | grep -q "#<CTK_TEMPLATED_FLAGS>"; then \
 			for dep in $(TMP_DIR)/CTK-deps/*.git.url; do \
-				echo "-D$$(basename $${dep%.git.*})_GIT_REPOSITORY:STRING="'file://$${FLATPAK_BUILDER_BUILDDIR}/dependencies/'"$$(basename $${dep%.*})" ; \
+				echo "-D$$(basename $${dep%.git.*})_GIT_REPOSITORY:STRING="'file://$${FLATPAK_BUILDER_BUILDDIR}/dependencies/CTK-dependencies/'"$$(basename $${dep%.*})" ; \
 			done ; \
 		else \
 			printf '%s\n' "$$line" ; \
 		fi ; \
 	done > $(TMP_DIR)/Slicer/SuperBuild/External_CTK.cmake.tmp
 	$(Q)mv $(TMP_DIR)/Slicer/SuperBuild/External_CTK.cmake.tmp $(TMP_DIR)/Slicer/SuperBuild/External_CTK.cmake
-	$(Q)cd $(TMP_DIR)/Slicer && git diff --patch > $(FLATPAK_DIR)/Generated_CTK_SuperBuild.patch
+	$(Q)cd $(TMP_DIR)/Slicer && \
+		git add SuperBuild/External_CTK.cmake && \
+		git diff --staged > $(FLATPAK_DIR)/Generated_CTK_SuperBuild.patch
 
 # Generate the Flatpak manifest using a template and the corresponding
 # dependencies

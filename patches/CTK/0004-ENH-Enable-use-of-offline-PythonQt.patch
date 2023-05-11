@@ -1,0 +1,43 @@
+From 599e9b3bda16d82964005b43a9391c4283c2b5af Mon Sep 17 00:00:00 2001
+From: Rafael Palomar <rafael.palomar@ous-research.no>
+Date: Mon, 8 May 2023 11:52:48 +0200
+Subject: [PATCH 4/4] ENH: Enable use of offline PythonQt
+
+---
+ CMakeExternals/PythonQt.cmake | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeExternals/PythonQt.cmake b/CMakeExternals/PythonQt.cmake
+index 5c6e1911..1f8d6d8b 100644
+--- a/CMakeExternals/PythonQt.cmake
++++ b/CMakeExternals/PythonQt.cmake
+@@ -102,12 +102,25 @@ if(NOT DEFINED PYTHONQT_INSTALL_DIR)
+                       GIT_TAG ${revision_tag})
+   endif()
+ 
++  ExternalProject_SetIfNotDefined(
++    ${proj}_GIT_REPOSITORY
++    "https://github.com/commontk/PythonQt.git"
++    QUIET
++    )
++
++  ExternalProject_SetIfNotDefined(
++    ${proj}_GIT_TAG
++    c4a5a155b2942d4b003862c3317105b4a1ea6755
++    QUIET
++    )
++
+   ExternalProject_Add(${proj}
+     ${${proj}_EXTERNAL_PROJECT_ARGS}
+     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
+     BINARY_DIR ${proj}-build
+     PREFIX ${proj}${ep_suffix}
+-    ${location_args}
++    GIT_REPOSITORY ${${proj}_GIT_REPOSITORY}
++    GIT_TAG ${${proj}_GIT_TAG}
+     BUILD_COMMAND ""
+     CMAKE_CACHE_ARGS
+       ${ep_common_cache_args}
+-- 
+2.39.3
+

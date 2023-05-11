@@ -307,19 +307,19 @@ with tempfile.TemporaryDirectory(prefix=tempdir_prefix) as tempdir:
     #     except FileNotFoundError:
     #         pass
 
-    fprint('Downloading arch independent packages')
-    for filename in os.listdir(tempdir):
-        if not filename.endswith(('bz2', 'any.whl', 'gz', 'xz', 'zip')):
-            version = get_file_version(filename)
-            name = get_package_name(filename)
-            url = get_tar_package_url_pypi(name, version)
-            print('Deleting', filename)
-            try:
-                os.remove(os.path.join(tempdir, filename))
-            except FileNotFoundError:
-                pass
-            print('Downloading {}'.format(url))
-            download_tar_pypi(url, tempdir)
+    # fprint('Downloading arch independent packages')
+    # for filename in os.listdir(tempdir):
+    #     if not filename.endswith(('bz2', 'any.whl', 'gz', 'xz', 'zip')):
+    #         version = get_file_version(filename)
+    #         name = get_package_name(filename)
+    #         url = get_tar_package_url_pypi(name, version)
+    #         print('Deleting', filename)
+    #         try:
+    #             os.remove(os.path.join(tempdir, filename))
+    #         except FileNotFoundError:
+    #             pass
+    #         print('Downloading {}'.format(url))
+    #         download_tar_pypi(url, tempdir)
 
     files = {get_package_name(f): [] for f in os.listdir(tempdir)}
 
