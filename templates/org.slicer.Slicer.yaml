@@ -27,6 +27,12 @@ modules:
       - type: git
         url: https://github.com/Slicer/Slicer.git
         tag: main
+      - type: file
+        path: org.slicer.Slicer.desktop
+        dest: /app/share/applications/
+      - type: file
+        path: org.slicer.Slicer.png
+        dest: /app/share/icons/hicolor/128x128/apps/
       - type: patch
         path: 0001-ENH-Add-an-option-to-switch-CMake-HTTPS-checks.patch
       - type: patch
