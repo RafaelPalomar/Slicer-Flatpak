@@ -1,64 +1,94 @@
 app-id: org.slicer.Slicer
 runtime: org.kde.Platform
-runtime-version: '5.15'
+runtime-version: '5.15-22.08'
 sdk: org.kde.Sdk
 base: io.qt.qtwebengine.BaseApp # KDE runtime environment does not provide the QtWebEngine component required for 3D Slicer
 base-version: '5.15-22.08'
-command: Slicer
+command: /app/Slicer/Slicer
 finish-args:
-  - |
-      --device=dri
-      --share=network
-      --share=ipc
-      --socket=x11
-      --device=dri
-      --filesystem=host
-      --socket=wayland
+  -  --device=dri
+  -  --share=network
+  -  --share=ipc
+  -  --socket=x11
+  -  --device=dri
+  -  --filesystem=xdg-data
+  -  --socket=wayland
+  -  --env=LD_LIBRARY_PATH=/app/lib
+  -  --env=QTWEBENGINEPROCESS_PATH=/app/bin/QtWebEngineProcess
+  -  --env=QTWEBENGINE_DISABLE_SANDBOX=1
+
 modules:
+  - name: libvpx
+    sources:
+      - type: git
+        url: https://chromium.googlesource.com/webm/libvpx
+        tag: main
+    buildsystem: simple
+    build-commands:
+      - CC=gcc CXX=g++ ./configure --prefix=/app --enable-shared
+      - make -j${FLATPAK_BUILDER_N_JOBS}
+      - make install
+  - name: libicu
+    sources:
+      - type: archive
+        url: https://github.com/unicode-org/icu/archive/refs/tags/release-71-1.tar.gz
+        sha512: cc9ccb3208d8079c4f8169713aa0ebb930e86cf6c72510a3b7de5824e6482f26166a2e530abaaecfb8338764b23ac215b2921a821167b41d6a3f23952e2718e6
+    buildsystem: simple
+    build-commands:
+      - cd icu4c/source && CC=gcc CXX=g++ ./configure --prefix=/app
+      - cd icu4c/source && make -j${FLATPAK_BUILDER_N_JOBS}
+      - cd icu4c/source && make install
   - name: Slicer
     buildsystem: simple
     build-commands:
-      - cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON -DITK_REMOTE_MODULES_DIR:FILEPATH=dependencies/ITK-Remote-Modules -DSlicer_CHECK_CMAKE_HTTPS_SUPPORT:BOOL=OFF -DFLATPAK_BUILDER_BUILDDIR:FILEPATH=${FLATPAK_BUILDER_BUILDDIR}
+      - ln -s /usr/bin/ccache cc
+      - ln -s /usr/bin/ccache c++
+      - cmake -S . -B Release -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=c++ -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON -DITK_REMOTE_MODULES_DIR:FILEPATH=dependencies/ITK-Remote-Modules -DSlicer_CHECK_CMAKE_HTTPS_SUPPORT:BOOL=OFF -DFLATPAK_BUILDER_BUILDDIR:FILEPATH=${FLATPAK_BUILDER_BUILDDIR} -DSlicer_STORE_SETTINGS_IN_APPLICATION_HOME_DIR:BOOL=OFF -DSlicer_USE_SimpleITK:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DSlicer_FORCED_REVISION=31810
       <CMAKE_GIT_DEPENDENCY_FLAGS> # Template tag for inserting CMake git-based dependency flags
       <CMAKE_ARCHIVE_DEPENDENCY_FLAGS> # Template tag for inserting CMake archive-based dependency flags
       <CMAKE_PYTHON_DEPENDENCY_FLAGS> # Template tag for inserting Python archive-based dependency flags
-      - cmake --build Release
+      - cmake --build Release -j${FLATPAK_BUILDER_N_JOBS}
+      - cd Release/Slicer-build && cpack
+      - ls ${FLATPAK_BUILDER_BUILDDIR}/Release/Slicer-build/Slicer*.tar.gz
+      - mkdir -p /app/Slicer
+      - tar xvzf ${FLATPAK_BUILDER_BUILDDIR}/Release/Slicer-build/Slicer*.tar.gz -C /app/Slicer --strip-components=1
+      - install -Dm 644 org.slicer.Slicer.desktop /app/share/applications/org.slicer.Slicer.desktop
+      - install -Dm 644 org.slicer.Slicer.png /app/share/icons/hicolor/128x128/apps/org.slicer.Slicer.png
     sources:
       - type: git
         url: https://github.com/Slicer/Slicer.git
         tag: main
       - type: file
         path: org.slicer.Slicer.desktop
-        dest: /app/share/applications/
       - type: file
         path: org.slicer.Slicer.png
-        dest: /app/share/icons/hicolor/128x128/apps/
       - type: patch
-        path: 0001-ENH-Add-an-option-to-switch-CMake-HTTPS-checks.patch
+        path: patches/Slicer/0001-ENH-Add-an-option-to-switch-CMake-HTTPS-checks.patch
       - type: patch
-        path: 0002-ENH-Print-external-dependencies-variables.patch
+        path: patches/Slicer/0002-ENH-Print-external-dependencies-variables.patch
       - type: patch
-        path: 0003-ENH-Expose-CTKAPPLAUNCHER-sources-variables.patch
+        path: patches/Slicer/0003-ENH-Expose-CTKAPPLAUNCHER-sources-variables.patch
       - type: patch
-        path: 0004-ENH-Disable-pull-of-git-submodules-for-RapidJSON.patch
+        path: patches/Slicer/0004-ENH-Disable-pull-of-git-submodules-for-RapidJSON.patch
       - type: patch
-        path: 0005-ENH-Expose-OpenSSL-dependencies-variables.patch
+        path: patches/Slicer/0005-ENH-Expose-OpenSSL-dependencies-variables.patch
       - type: patch
-        path: 0006-ENH-Expose-python-dependency-variables.patch
+        path: patches/Slicer/0006-ENH-Expose-python-dependency-variables.patch
       - type: patch
-        path: 0007-ENH-Expose-python-wheel-dependencies.patch
+        path: patches/Slicer/0007-ENH-Expose-python-wheel-dependencies.patch
       - type: patch
-        path: 0008-ENH-Supress-pull-of-git-modules-for-VTK.patch
+        path: patches/Slicer/0008-ENH-Supress-pull-of-git-modules-for-VTK.patch
       - type: patch
-        path: 0009-ENH-Enable-ITK-build-with-offline-remote-modules.patch
+        path: patches/Slicer/0009-ENH-Enable-ITK-build-with-offline-remote-modules.patch
       - type: patch
-        path: 0010-ENH-Enable-offline-remote-dependencies.patch
+        path: patches/Slicer/0010-ENH-Enable-offline-remote-dependencies.patch
       - type: patch
-        path: 0011-ENH-Enable-build-with-offilne-PCRE.patch
+        path: patches/Slicer/0011-ENH-Enable-build-with-offilne-PCRE.patch
       - type: patch
-        path: 0012-ENH-Enable-build-with-onffline-swift.patch
+        path: patches/Slicer/0012-ENH-Enable-build-with-onffline-swift.patch
       - type: patch
-        path: Generated_CTK_SuperBuild.patch
+        path: patches/Slicer/0015-ENH-Add-user-configuration-to-pip-un-install.patch
+        path: patches/Slicer/generated/CTK_SuperBuild.patch
       <SLICER_GIT_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (git)
       <SLICER_ARCHIVE_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (Archive files)
       <ITK_REMOTE_MODULE_DEPENDENCIES> # Template tag for inserting ITK remote module dependencies

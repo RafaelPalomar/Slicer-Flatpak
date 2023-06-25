@@ -158,7 +158,7 @@ analyze-ctk-dependencies: analyze-slicer-dependencies
 	git checkout $$(cat $(TMP_DIR)/CTK.git.tag) && \
 	for patch in $$(ls $(PATCH_DIR)/CTK/*); do git apply $${patch}; done && \
 	mkdir -p $(CTK_SOURCE_DIR)/Release && \
-	cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) -DCTK_USE_QTTESTING:BOOL=ON 2&> Release/cmake.out && \
+	cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) -DCTK_USE_QTTESTING:BOOL=ON -DCTK_ENABLE_Python_Wrapping:BOOL=ON 2&> Release/cmake.out && \
 	grep "GIT_REPOSITORY" Release/cmake.out | \
 		awk -F= '{gsub("-- ", "", $$1); gsub("_GIT_REPOSITORY", "", $$1); print $$1 > "$(TMP_DIR)/CTK-deps/"$$1".git.dep"; print $$2 > "$(TMP_DIR)/CTK-deps/"$$1".git.dep"}' && \
 	grep "GIT_TAG" Release/cmake.out | \
