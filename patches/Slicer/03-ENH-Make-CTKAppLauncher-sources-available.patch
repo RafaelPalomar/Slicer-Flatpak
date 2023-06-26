@@ -1,0 +1,36 @@
+diff --git a/SuperBuild/External_CTKAPPLAUNCHER.cmake b/SuperBuild/External_CTKAPPLAUNCHER.cmake
+index 6f90aaa239..fac72ec270 100644
+--- a/SuperBuild/External_CTKAPPLAUNCHER.cmake
++++ b/SuperBuild/External_CTKAPPLAUNCHER.cmake
+@@ -35,13 +35,28 @@ if(Slicer_USE_CTKAPPLAUNCHER)
+       set(md5 "c50f5b765d7060bed16b6f669300b680")
+     endif()
+ 
++    set(CTKAppLauncherFileName CTKAppLauncher-${launcher_version}-${CTKAPPLAUNCHER_OS}-${CTKAPPLAUNCHER_ARCHITECTURE}.tar.gz)
++    set(CTKAPPLAUNCHER_${launcher_version}-${CTKAPPLAUNCHER_OS}-${CTKAPPLAUNCHER_ARCHITECTURE}_URL
++      "https://github.com/commontk/AppLauncher/releases/download/v${launcher_version}/${CTKAppLauncherFileName}")
++
++    ExternalProject_SetIfNotDefined(
++      Slicer_${proj}_ARCHIVE_URL
++      "${CTKAPPLAUNCHER_${launcher_version}-${CTKAPPLAUNCHER_OS}-${CTKAPPLAUNCHER_ARCHITECTURE}_URL}"
++      QUIET
++    )
++
++    ExternalProject_SetIfNotDefined(
++      Slicer_${proj}_ARCHIVE_MD5
++      "${md5}"
++      QUIET
++    )
++
+     set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj})
+ 
+-    set(CTKAppLauncherFileName CTKAppLauncher-${launcher_version}-${CTKAPPLAUNCHER_OS}-${CTKAPPLAUNCHER_ARCHITECTURE}.tar.gz)
+     ExternalProject_Add(${proj}
+       ${${proj}_EP_ARGS}
+-      URL https://github.com/commontk/AppLauncher/releases/download/v${launcher_version}/${CTKAppLauncherFileName}
+-      URL_MD5 ${md5}
++      URL ${Slicer_${proj}_ARCHIVE_URL}
++      URL_MD5 ${Slicer_${proj}_ARCHIVE_MD5}
+       DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
+       SOURCE_DIR ${EP_BINARY_DIR}
+       BUILD_IN_SOURCE 1

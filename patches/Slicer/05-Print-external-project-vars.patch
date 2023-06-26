@@ -1,0 +1,14 @@
+diff --git a/CMake/ExternalProjectAddSource.cmake b/CMake/ExternalProjectAddSource.cmake
+index 9fc5cecc93..362a0c6c58 100644
+--- a/CMake/ExternalProjectAddSource.cmake
++++ b/CMake/ExternalProjectAddSource.cmake
+@@ -233,7 +233,8 @@ macro(Slicer_Remote_Add projectname)
+   #message("[${projectname}] Option (${_ep_OPTION_NAME}) value ${${_ep_OPTION_NAME}}")
+   if(_add_source)
+     message(STATUS "Remote - ${projectname} [OK]")
+-
++    message(STATUS "Slicer_${projectname}_GIT_REPOSITORY=${_ep_GIT_REPOSITORY}")
++    message(STATUS "Slicer_${projectname}_GIT_TAG=${_ep_GIT_TAG}")
+     set(_ep_args_to_pass)
+     foreach(arg ${_add_source_args} ${_add_source_multi_args})
+       if(_ep_${arg})

@@ -1,0 +1,53 @@
+From 965b2c166fdb43967db9d0e4f0cd813f448f2eab Mon Sep 17 00:00:00 2001
+From: Rafael Palomar <rafael.palomar@ous-research.no>
+Date: Wed, 3 May 2023 12:21:25 +0200
+Subject: [PATCH 2/4] ENH: Enable use of offline CTKData
+
+---
+ CMakeExternals/CTKData.cmake | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
+
+diff --git a/CMakeExternals/CTKData.cmake b/CMakeExternals/CTKData.cmake
+index 53a2ff0c..68de7cae 100644
+--- a/CMakeExternals/CTKData.cmake
++++ b/CMakeExternals/CTKData.cmake
+@@ -29,23 +29,25 @@ if(NOT DEFINED CTKData_DIR)
+     set(revision_tag ${${proj}_REVISION_TAG})
+   endif()
+ 
+-  set(location_args )
+-  if(${proj}_URL)
+-    set(location_args URL ${${proj}_URL})
+-  elseif(${proj}_GIT_REPOSITORY)
+-    set(location_args GIT_REPOSITORY ${${proj}_GIT_REPOSITORY}
+-                      GIT_TAG ${revision_tag})
+-  else()
+-    set(location_args GIT_REPOSITORY "https://github.com/commontk/CTKData.git"
+-                      GIT_TAG ${revision_tag})
+-  endif()
++  ExternalProject_SetIfNotDefined(
++    ${proj}_GIT_REPOSITORY
++    "https://github.com/commontk/CTKData.git"
++    QUIET
++    )
++
++  ExternalProject_SetIfNotDefined(
++    ${proj}_GIT_TAG
++    cc07f1ff391b7828459c
++    QUIET
++    )
+ 
+   ExternalProject_Add(${proj}
+     ${${proj}_EXTERNAL_PROJECT_ARGS}
+     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
+     BINARY_DIR ${proj}-build
+     PREFIX ${proj}${ep_suffix}
+-    ${location_args}
++    GIT_REPOSITORY ${${proj}_GIT_REPOSITORY}
++    GIT_TAG ${${proj}_GIT_TAG}
+     CONFIGURE_COMMAND ""
+     BUILD_COMMAND ""
+     INSTALL_COMMAND ""
+-- 
+2.39.3
+
