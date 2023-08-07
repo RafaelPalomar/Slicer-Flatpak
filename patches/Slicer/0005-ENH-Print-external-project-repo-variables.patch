@@ -1,3 +1,12 @@
+From 3cbda5867abf6f9a9350b9726ae31897330447e4 Mon Sep 17 00:00:00 2001
+From: Rafael Palomar <rafael.palomar@ous-research.no>
+Date: Sat, 5 Aug 2023 11:08:04 +0200
+Subject: [PATCH 5/8] ENH: Print external project repo variables
+
+---
+ CMake/ExternalProjectAddSource.cmake | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
 diff --git a/CMake/ExternalProjectAddSource.cmake b/CMake/ExternalProjectAddSource.cmake
 index 9fc5cecc93..362a0c6c58 100644
 --- a/CMake/ExternalProjectAddSource.cmake
@@ -12,3 +21,6 @@ index 9fc5cecc93..362a0c6c58 100644
      set(_ep_args_to_pass)
      foreach(arg ${_add_source_args} ${_add_source_multi_args})
        if(_ep_${arg})
+-- 
+2.41.0
+

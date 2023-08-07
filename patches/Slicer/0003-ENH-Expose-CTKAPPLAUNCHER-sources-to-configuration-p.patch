@@ -1,3 +1,13 @@
+From fa4ca990b212f09cd6c69bbefb554cbac2bfb37a Mon Sep 17 00:00:00 2001
+From: Rafael Palomar <rafael.palomar@ous-research.no>
+Date: Sat, 5 Aug 2023 11:02:57 +0200
+Subject: [PATCH 3/8] ENH: Expose CTKAPPLAUNCHER sources to configuration
+ printout
+
+---
+ SuperBuild/External_CTKAPPLAUNCHER.cmake | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
+
 diff --git a/SuperBuild/External_CTKAPPLAUNCHER.cmake b/SuperBuild/External_CTKAPPLAUNCHER.cmake
 index 6f90aaa239..fac72ec270 100644
 --- a/SuperBuild/External_CTKAPPLAUNCHER.cmake
@@ -34,3 +44,6 @@ index 6f90aaa239..fac72ec270 100644
        DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
        SOURCE_DIR ${EP_BINARY_DIR}
        BUILD_IN_SOURCE 1
+-- 
+2.41.0
+

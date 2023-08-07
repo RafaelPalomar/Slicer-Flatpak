@@ -1,0 +1,41 @@
+From 7b6a4dac8ccdc8bd4f678f9c54250aba3147c573 Mon Sep 17 00:00:00 2001
+From: Rafael Palomar <rafael.palomar@ous-research.no>
+Date: Sat, 5 Aug 2023 21:37:20 +0200
+Subject: [PATCH 7/8] ENH: Expose Swig source to configuration printout
+
+---
+ SuperBuild/External_Swig.cmake | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/SuperBuild/External_Swig.cmake b/SuperBuild/External_Swig.cmake
+index b366091e2e..5712782879 100644
+--- a/SuperBuild/External_Swig.cmake
++++ b/SuperBuild/External_Swig.cmake
+@@ -93,10 +93,22 @@ ExternalProject_Execute(${proj} \"configure\" sh ${EP_SOURCE_DIR}/configure
+     --with-python=${PYTHON_EXECUTABLE})
+ ")
+ 
++     ExternalProject_SetIfNotDefined(
++       Slicer_${proj}_ARCHIVE_URL
++       https://github.com/Slicer/SlicerBinaryDependencies/releases/download/swig/swig-${SWIG_TARGET_VERSION}.tar.gz
++       QUIET
++     )
++
++     ExternalProject_SetIfNotDefined(
++       Slicer_${proj}_ARCHIVE_SHA512
++       ${SWIG_DOWNLOAD_SOURCE_HASH}
++       QUIET
++     )
++
+     ExternalProject_add(Swig
+       ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
+-      URL https://github.com/Slicer/SlicerBinaryDependencies/releases/download/swig/swig-${SWIG_TARGET_VERSION}.tar.gz
+-      URL_HASH SHA512=${SWIG_DOWNLOAD_SOURCE_HASH}
++      URL ${Slicer_${proj}_ARCHIVE_URL}
++      URL_HASH SHA512=${Slicer_${proj}_ARCHIVE_SHA512}
+       DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
+       SOURCE_DIR ${EP_SOURCE_DIR}
+       BINARY_DIR ${EP_BINARY_DIR}
+-- 
+2.41.0
+

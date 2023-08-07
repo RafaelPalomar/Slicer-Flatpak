@@ -1,8 +1,17 @@
+From ede6793d2ff81383a45378e646e1ab20b978cd1e Mon Sep 17 00:00:00 2001
+From: Rafael Palomar <rafael.palomar@ous-research.no>
+Date: Sat, 5 Aug 2023 11:07:09 +0200
+Subject: [PATCH 4/8] ENH: Expose python sources to configuration printout
+
+---
+ SuperBuild/External_python.cmake | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
 diff --git a/SuperBuild/External_python.cmake b/SuperBuild/External_python.cmake
-index 2216b9570a..166daeafc3 100644
+index 7e95491611..fb65b86318 100644
 --- a/SuperBuild/External_python.cmake
 +++ b/SuperBuild/External_python.cmake
-@@ -54,9 +54,21 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
+@@ -54,6 +54,18 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
    set(_download_3.9.10_url "https://www.python.org/ftp/python/3.9.10/Python-3.9.10.tgz")
    set(_download_3.9.10_md5 "1440acb71471e2394befdb30b1a958d1")
  
@@ -18,7 +27,13 @@ index 2216b9570a..166daeafc3 100644
 +    QUIET
 +  )
 +
+   set(EXTERNAL_PROJECT_OPTIONAL_ARGS)
+   if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
+     list(APPEND EXTERNAL_PROJECT_OPTIONAL_ARGS
+@@ -63,8 +75,8 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
+ 
    ExternalProject_Add(python-source
+     ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
 -    URL ${_download_${Slicer_REQUIRED_PYTHON_VERSION}_url}
 -    URL_MD5 ${_download_${Slicer_REQUIRED_PYTHON_VERSION}_md5}
 +    URL ${Slicer_${proj}_ARCHIVE_URL}
@@ -26,3 +41,6 @@ index 2216b9570a..166daeafc3 100644
      DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
      SOURCE_DIR ${python_SOURCE_DIR}
      CONFIGURE_COMMAND ""
+-- 
+2.41.0
+

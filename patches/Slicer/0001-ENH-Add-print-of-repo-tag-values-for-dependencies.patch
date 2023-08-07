@@ -1,0 +1,24 @@
+From a1ae2f326dc936fb0512dffce3eb085e1d187946 Mon Sep 17 00:00:00 2001
+From: Rafael Palomar <rafael.palomar@ous-research.no>
+Date: Sat, 5 Aug 2023 11:00:53 +0200
+Subject: [PATCH 1/8] ENH: Add print of repo/tag values for dependencies
+
+---
+ CMake/ExternalProjectDependency.cmake | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/CMake/ExternalProjectDependency.cmake b/CMake/ExternalProjectDependency.cmake
+index 872ee8490a..38233569ad 100644
+--- a/CMake/ExternalProjectDependency.cmake
++++ b/CMake/ExternalProjectDependency.cmake
+@@ -1106,6 +1106,7 @@ macro(ExternalProject_SetIfNotDefined var defaultvalue)
+     endif()
+     set(${var} "${defaultvalue}")
+   endif()
++  message(STATUS "${var}=${${var}}")
+   get_property(_is_set CACHE ${var} PROPERTY VALUE SET)
+   if(_is_set AND NOT _quiet)
+     set(_value "${${var}}")
+-- 
+2.41.0
+

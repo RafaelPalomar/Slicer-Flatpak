@@ -1,3 +1,12 @@
+From 5abe4e71d427194255bfe5979030aea948318d1b Mon Sep 17 00:00:00 2001
+From: Rafael Palomar <rafael.palomar@ous-research.no>
+Date: Sat, 5 Aug 2023 11:01:35 +0200
+Subject: [PATCH 2/8] ENH: Expose OpenSSL sources to configuration printout
+
+---
+ SuperBuild/External_OpenSSL.cmake | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
 diff --git a/SuperBuild/External_OpenSSL.cmake b/SuperBuild/External_OpenSSL.cmake
 index 23ee5644d3..940dbb2755 100644
 --- a/SuperBuild/External_OpenSSL.cmake
@@ -28,3 +37,6 @@ index 23ee5644d3..940dbb2755 100644
        DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
        SOURCE_DIR ${EP_SOURCE_DIR}
        BUILD_IN_SOURCE 1
+-- 
+2.41.0
+
