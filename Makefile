@@ -35,6 +35,7 @@ TMP_DIR := /tmp/slicer-flatpak-$(shell cat /dev/urandom | tr -dc 'a-zA-Z0-9' | f
 SLICER_SOURCE_DIR := $(TMP_DIR)/Slicer
 ITK_SOURCE_DIR:= $(TMP_DIR)/ITK
 CTK_SOURCE_DIR:= $(TMP_DIR)/CTK
+SimpleITK_SOURCE_DIR:= $(TMP_DIR)/SimpleITK
 FLATPAK_DIR := $(CURDIR)/org.slicer.Slicer
 
 all: \
@@ -45,6 +46,7 @@ all: \
     analyze-slicer-python-dependencies \
 	analyze-ITK-remote-modules \
 	analyze-ctk-dependencies\
+	analyze-simpleitk-dependencies\
     generate-flatpak-manifest \
     build-flatpak
 
@@ -158,7 +160,7 @@ analyze-ctk-dependencies: analyze-slicer-dependencies
 	git checkout $$(cat $(TMP_DIR)/CTK.git.tag) && \
 	for patch in $$(ls $(PATCH_DIR)/CTK/*); do git apply $${patch}; done && \
 	mkdir -p $(CTK_SOURCE_DIR)/Release && \
-	cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) -DCTK_USE_QTTESTING:BOOL=ON -DCTK_ENABLE_Python_Wrapping:BOOL=ON 2&> Release/cmake.out && \
+	cmake -S . -B Release -DCMAKE_BUILD_TYPE:STRING=Release $(CCACHE_SUPPORT) -DCTK_QT_VERSION=5 -DCTK_USE_QTTESTING:BOOL=ON -DCTK_ENABLE_Python_Wrapping:BOOL=ON 2&> Release/cmake.out && \
 	grep "GIT_REPOSITORY" Release/cmake.out | \
 		awk -F= '{gsub("-- ", "", $$1); gsub("_GIT_REPOSITORY", "", $$1); print $$1 > "$(TMP_DIR)/CTK-deps/"$$1".git.dep"; print $$2 > "$(TMP_DIR)/CTK-deps/"$$1".git.dep"}' && \
 	grep "GIT_TAG" Release/cmake.out | \
@@ -173,6 +175,17 @@ analyze-ctk-dependencies: analyze-slicer-dependencies
 			echo "$${repo_url}" > $(TMP_DIR)/CTK-deps/$${dep/%.git.dep/.git.url}; \
 			echo "$${repo_tag}" > $(TMP_DIR)/CTK-deps/$${dep/%.git.dep/.git.tag}; \
 		done
+
+analyze-simpleitk-dependencies: analyze-slicer-dependencies
+	$(Q)cd $(TMP_DIR) && \
+	mkdir SimpleITK-deps -p && \
+	git clone $$(cat $(TMP_DIR)/SimpleITK.git.url) SimpleITK
+	$(Q)cd $(TMP_DIR)/SimpleITK && \
+	git checkout $$(cat $(TMP_DIR)/SimpleITK.git.tag) && \
+	for dep in $$(ls $(SimpleITK_SOURCE_DIR)/SuperBuild/ExternalSource); do\
+		archive_hash=`cat ${dep}`;\
+		echo "https://data.kitware.com:443/api/v1/file/hashsum/sha512/${archive_hash}/download" > $(TMP_DIR)/SimpleITK-deps/$${dep%%.*.*}.archive.url;\
+	done
 
 analyze-slicer-python-dependencies: analyze-slicer-dependencies
 	$(Q)echo "Analyzing python dependencies..."
