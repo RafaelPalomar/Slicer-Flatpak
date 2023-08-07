@@ -1,21 +1,21 @@
-From 1723c5bc83b15e54ce6a9aee8aad3761f409cb14 Mon Sep 17 00:00:00 2001
+From ce0e7606b5348a8d88746c38d4d3f5023f339863 Mon Sep 17 00:00:00 2001
 From: Rafael Palomar <rafael.palomar@ous-research.no>
 Date: Wed, 3 May 2023 12:21:40 +0200
 Subject: [PATCH 3/4] ENH: Enable the use of offline QTTesting
 
 ---
- CMakeExternals/QtTesting.cmake | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ CMakeExternals/QtTesting.cmake | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
 diff --git a/CMakeExternals/QtTesting.cmake b/CMakeExternals/QtTesting.cmake
-index e6197be6..234f4222 100644
+index ba6b7e49..ca7a6eba 100644
 --- a/CMakeExternals/QtTesting.cmake
 +++ b/CMakeExternals/QtTesting.cmake
-@@ -70,13 +70,27 @@ if(NOT DEFINED QtTesting_DIR)
-         )
-     endif()
+@@ -74,12 +74,25 @@ if(NOT DEFINED QtTesting_DIR)
+     message(FATAL_ERROR "Support for Qt${CTK_QT_VERSION} is not implemented")
    endif()
-+
+ 
+-  ExternalProject_Add(${proj}
 +  ExternalProject_SetIfNotDefined(
 +    ${proj}_GIT_REPOSITORY
 +    "https://github.com/commontk/QtTesting.git"
@@ -24,12 +24,11 @@ index e6197be6..234f4222 100644
 +
 +  ExternalProject_SetIfNotDefined(
 +    ${proj}_GIT_TAG
-+    b5324a213dc3c4abd7b588575ea926db57aa981e
++    c44b32fdea827be737e8c2f5608ffbc2e3bd08b2
 +    QUIET
 +    )
 +
-   message(STATUS "Adding project:${proj}")
-   ExternalProject_Add(${proj}
++    ExternalProject_Add(${proj}
      ${${proj}_EXTERNAL_PROJECT_ARGS}
      SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
      BINARY_DIR ${proj}-build
@@ -41,5 +40,5 @@ index e6197be6..234f4222 100644
        ${ep_common_cache_args}
        ${ep_cache_args}
 -- 
-2.39.3
+2.41.0
 

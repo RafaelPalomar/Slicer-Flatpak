@@ -1,4 +1,4 @@
-From bc4c9ec02daa1351e6f23c9c68231c422a332dd3 Mon Sep 17 00:00:00 2001
+From 4da425c6635a588980ca9d19b951469eeb42ad1d Mon Sep 17 00:00:00 2001
 From: Rafael Palomar <rafael.palomar@ous-research.no>
 Date: Sun, 30 Apr 2023 22:39:08 +0200
 Subject: [PATCH 1/4] ENH: Print external project variables
@@ -8,10 +8,10 @@ Subject: [PATCH 1/4] ENH: Print external project variables
  1 file changed, 1 insertion(+)
 
 diff --git a/CMake/ctkMacroCheckExternalProjectDependency.cmake b/CMake/ctkMacroCheckExternalProjectDependency.cmake
-index 73dc01ca..f879757a 100644
+index 872ee849..e5e26d9f 100644
 --- a/CMake/ctkMacroCheckExternalProjectDependency.cmake
 +++ b/CMake/ctkMacroCheckExternalProjectDependency.cmake
-@@ -1110,6 +1110,7 @@ macro(ExternalProject_SetIfNotDefined var defaultvalue)
+@@ -1114,6 +1114,7 @@ macro(ExternalProject_SetIfNotDefined var defaultvalue)
      endif()
      message(STATUS "Cache variable '${var}' set to '${_value}'")
    endif()
@@ -20,5 +20,5 @@ index 73dc01ca..f879757a 100644
  
  #.rst:
 -- 
-2.39.3
+2.41.0
 
