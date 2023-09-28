@@ -183,8 +183,9 @@ analyze-simpleitk-dependencies: analyze-slicer-dependencies
 	$(Q)cd $(TMP_DIR)/SimpleITK && \
 	git checkout $$(cat $(TMP_DIR)/SimpleITK.git.tag) && \
 	for dep in $$(ls $(SimpleITK_SOURCE_DIR)/SuperBuild/ExternalSource); do\
-		archive_hash=`cat ${dep}`;\
-		echo "https://data.kitware.com:443/api/v1/file/hashsum/sha512/${archive_hash}/download" > $(TMP_DIR)/SimpleITK-deps/$${dep%%.*.*}.archive.url;\
+		archive_hash=$$(cat $(SimpleITK_SOURCE_DIR)/SuperBuild/ExternalSource/$$dep);\
+		echo "https://data.kitware.com:443/api/v1/file/hashsum/sha512/$${archive_hash}/download" > $(TMP_DIR)/SimpleITK-deps/$${dep%%.*.*}.archive.url;\
+		echo "$${archive_hash}" > $(TMP_DIR)/SimpleITK-deps/$${dep%%.*.*}.sha512;\
 	done
 
 analyze-slicer-python-dependencies: analyze-slicer-dependencies
@@ -235,7 +236,7 @@ generate-patch-slicer-external-ctk: analyze-ctk-dependencies
 
 # Generate the Flatpak manifest using a template and the corresponding
 # dependencies
-generate-flatpak-manifest: analyze-slicer-python-dependencies analyze-ctk-dependencies generate-patch-slicer-external-ctk
+generate-flatpak-manifest: analyze-slicer-python-dependencies analyze-ctk-dependencies analyze-simpleitk-dependencies generate-patch-slicer-external-ctk
 	$(Q)echo "Generating flatpak manifest..."
 
 	$(Q)cat templates/org.slicer.Slicer.yaml | while IFS= read -r line; do \
@@ -278,6 +279,14 @@ generate-flatpak-manifest: analyze-slicer-python-dependencies analyze-ctk-depend
 				echo "        url: $$(cat $$dep)" ; \
 				echo "        tag: $$(cat $${dep%%.url}.tag)" ; \
 				echo "        dest: dependencies/CTK-dependencies/$$(basename $${dep%.*})" ; \
+			done ; \
+		elif echo "$$line" | grep -q "<SimpleITK_DEPENDENCIES>"; then \
+			for dep in $(TMP_DIR)/SimpleITK-deps/*.archive.url; do \
+				echo "      - type: file" ; \
+				echo "        url: $$(cat $$dep)" ; \
+				echo "        sha512: $$(cat $${dep%%.archive.url}.sha512)" ; \
+				echo "        dest: dependencies/SimpleITK-dependencies" ; \
+				echo "        dest-filename: $$(cat $${dep%%.archive.url}.sha512)" ; \
 			done ; \
 		else \
 			printf '%s\n' "$$line" ; \

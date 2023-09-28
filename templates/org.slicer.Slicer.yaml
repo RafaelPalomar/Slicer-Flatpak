@@ -43,8 +43,8 @@ modules:
     build-commands:
       - ln -s /usr/bin/ccache cc
       - ln -s /usr/bin/ccache c++
-      - cmake -S . -B Release -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=c++ -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON -DITK_REMOTE_MODULES_DIR:FILEPATH=dependencies/ITK-Remote-Modules -DSlicer_CHECK_CMAKE_HTTPS_SUPPORT:BOOL=OFF -DFLATPAK_BUILDER_BUILDDIR:FILEPATH=${FLATPAK_BUILDER_BUILDDIR} -DSlicer_STORE_SETTINGS_IN_APPLICATION_HOME_DIR:BOOL=OFF -DSlicer_USE_SimpleITK:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DSlicer_FORCED_REVISION=31810
-      <CMAKE_GIT_DEPENDENCY_FLAGS> # Template tag for inserting CMake git-based dependency flags
+      - cmake -S . -B Release -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=c++ -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON -DITK_REMOTE_MODULES_DIR:FILEPATH=dependencies/ITK-Remote-Modules -DSlicer_CHECK_CMAKE_HTTPS_SUPPORT:BOOL=OFF -DFLATPAK_BUILDER_BUILDDIR:FILEPATH=${FLATPAK_BUILDER_BUILDDIR} -DSlicer_STORE_SETTINGS_IN_APPLICATION_HOME_DIR:BOOL=OFF -DSlicer_USE_SimpleITK:BOOL=ON -DBUILD_TESTING:BOOL=OFF -DSlicer_FORCED_REVISION=31810
+      <CMAKE_GIT_DEPENDENCY_FLAGS> # Templata tag for inserting CMake git-based dependency flags
       <CMAKE_ARCHIVE_DEPENDENCY_FLAGS> # Template tag for inserting CMake archive-based dependency flags
       <CMAKE_PYTHON_DEPENDENCY_FLAGS> # Template tag for inserting Python archive-based dependency flags
       - cmake --build Release -j${FLATPAK_BUILDER_N_JOBS}
@@ -88,8 +88,12 @@ modules:
         path: patches/Slicer/0012-ENH-Enable-build-with-onffline-swift.patch
       - type: patch
         path: patches/Slicer/0015-ENH-Add-user-configuration-to-pip-un-install.patch
+      - type: patch
+        path: patches/Slicer/0016-ENH-Add-local-url-template-to-SimpleITK.patch
+      - type: patch
         path: patches/Slicer/generated/CTK_SuperBuild.patch
       <SLICER_GIT_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (git)
       <SLICER_ARCHIVE_DEPENDENCIES> # Template tag for inserting actual Slicer dependencies (Archive files)
       <ITK_REMOTE_MODULE_DEPENDENCIES> # Template tag for inserting ITK remote module dependencies
       <CTK_DEPENDENCIES> # Template tag for inserting CTK dependencies
+      <SimpleITK_DEPENDENCIES> # Template tag for inserting CTK dependencies

@@ -1,0 +1,28 @@
+From 652dcb79daab79b72741242a990e0c3349c6f332 Mon Sep 17 00:00:00 2001
+From: Rafael Palomar <rafael.palomar@ous-research.no>
+Date: Sat, 5 Aug 2023 21:38:14 +0200
+Subject: [PATCH 8/8] ENH: Add templated list of arguments for CTK
+
+---
+ SuperBuild/External_CTK.cmake | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/SuperBuild/External_CTK.cmake b/SuperBuild/External_CTK.cmake
+index f242459fbd..3740ba16ae 100644
+--- a/SuperBuild/External_CTK.cmake
++++ b/SuperBuild/External_CTK.cmake
+@@ -65,6 +65,11 @@ if(NOT DEFINED CTK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
+       -DCTK_QT_VERSION:STRING=5
+       )
+ 
++    list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
++      # Here there could be flags generated (e.g., Flatpak)
++      #<CTK_TEMPLATED_FLAGS>
++      )
++
+   ExternalProject_SetIfNotDefined(
+     Slicer_${proj}_GIT_REPOSITORY
+     "${EP_GIT_PROTOCOL}://github.com/commontk/CTK.git"
+-- 
+2.41.0
+
