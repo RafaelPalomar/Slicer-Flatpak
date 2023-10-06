@@ -43,7 +43,8 @@ modules:
     build-commands:
       - ln -s /usr/bin/ccache cc
       - ln -s /usr/bin/ccache c++
-      - cmake -S . -B Release -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=c++ -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON -DITK_REMOTE_MODULES_DIR:FILEPATH=dependencies/ITK-Remote-Modules -DSlicer_CHECK_CMAKE_HTTPS_SUPPORT:BOOL=OFF -DFLATPAK_BUILDER_BUILDDIR:FILEPATH=${FLATPAK_BUILDER_BUILDDIR} -DSlicer_STORE_SETTINGS_IN_APPLICATION_HOME_DIR:BOOL=OFF -DSlicer_USE_SimpleITK:BOOL=ON -DBUILD_TESTING:BOOL=OFF -DSlicer_FORCED_REVISION=31810
+      - cmake -S . -B Release -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=c++ -DCMAKE_BUILD_TYPE:STRING=Release -DSlicer_USE_SYSTEM_LibFFI:BOOL=ON -DITK_REMOTE_MODULES_DIR:FILEPATH=dependencies/ITK-Remote-Modules -DSlicer_CHECK_CMAKE_HTTPS_SUPPORT:BOOL=OFF -DFLATPAK_BUILDER_BUILDDIR:FILEPATH=${FLATPAK_BUILDER_BUILDDIR} -DSlicer_STORE_SETTINGS_IN_APPLICATION_HOME_DIR:BOOL=OFF -DSlicer_USE_SimpleITK:BOOL=ON -DBUILD_TESTING:BOOL=OFF
+      <SLICER_REVISION> # Templata tag for inserting CMake git-based dependency flags
       <CMAKE_GIT_DEPENDENCY_FLAGS> # Templata tag for inserting CMake git-based dependency flags
       <CMAKE_ARCHIVE_DEPENDENCY_FLAGS> # Template tag for inserting CMake archive-based dependency flags
       <CMAKE_PYTHON_DEPENDENCY_FLAGS> # Template tag for inserting Python archive-based dependency flags
@@ -57,7 +58,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/Slicer/Slicer.git
-        tag: main
+      <SLICER_GIT_TAG> # Template tag to insert the git tag
       - type: file
         path: org.slicer.Slicer.desktop
       - type: file

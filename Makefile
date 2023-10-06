@@ -2,7 +2,8 @@ SHELL=/bin/sh
 
 # Slicer Git Repository and Tag
 SLICER_GIT_REPOSITORY ?= https://github.com/Slicer/Slicer
-SLICER_GIT_TAG ?= main
+SLICER_GIT_TAG ?= '5.4'
+SLICER_REVISION?= 31938
 
 # Dependency Versions
 PLATFORM_VERSION ?= 5.15
@@ -247,6 +248,14 @@ generate-flatpak-manifest: analyze-slicer-python-dependencies analyze-ctk-depend
 				echo "        tag: $$(cat $${dep%%.url}.tag)" ; \
 				echo "        dest: dependencies/$$(basename $${dep%.*})" ; \
 			done ; \
+		elif echo "$$line" | grep -q "<SLICER_GIT_TAG>"; then \
+				echo "        tag: $(SLICER_GIT_TAG)" ; \
+		elif echo "$$line" | grep -q "<SLICER_REVISION>"; then \
+				if [ -z "$(SLICER_REVISION)" ]; then \
+					echo "" ; \
+				else \
+					echo "        -DSlicer_FORCED_REVISION=$(SLICER_REVISION)"; \
+				fi ; \
 		elif echo "$$line" | grep -q "<CMAKE_GIT_DEPENDENCY_FLAGS>"; then \
 			for dep in $(TMP_DIR)/*.git.url; do \
 				echo "        -DSlicer_$$(basename $${dep%.git.*})_GIT_REPOSITORY:STRING="'file://$${FLATPAK_BUILDER_BUILDDIR}/dependencies/'"$$(basename $${dep%.*})" ; \
